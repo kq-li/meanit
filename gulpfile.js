@@ -6,10 +6,31 @@ var es = require('event-stream');
 
 gulp.task('default', function () {});
 
+gulp.task('pug', function () {
+  return gulp.src('./*.pug')
+    .pipe(pug())
+    .pipe(gulp.dest('./'));
+});
+
+gulp.task('less', function() {
+  return gulp.src('./*.less')
+    .pipe(less({
+      paths: [path.join(__dirname, 'less', 'includes')]
+    }))
+    .pipe(gulp.dest('./'));
+});
+          
 gulp.task('views', function buildHTML() {
-  return es.merge(gulp.src('./*.pug').pipe(pug()),
-                  gulp.src('./*.less').pipe(less({
-                    paths: [path.join(__dirname, 'less', 'includes')]
-                  }))).pipe(gulp.dest('./'));
+  return es.merge(
+    gulp.src('./*.pug')
+      .pipe(pug()),
+    gulp.src('./*.less')
+      .pipe(less({
+        paths: [path.join(__dirname, 'less', 'includes')]
+      })))
+    .pipe(gulp.dest('./'));
 });
                                 
+gulp.task('watch', function () {
+  gulp.watch(['./*.pug', './*.less'], ['views']);
+});
