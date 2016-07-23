@@ -19,8 +19,8 @@ gulp.task('less', function() {
     }))
     .pipe(gulp.dest('./'));
 });
-          
-gulp.task('views', function buildHTML() {
+
+gulp.task('views', function () {
   return es.merge(
     gulp.src('./*.pug')
       .pipe(pug()),
@@ -30,7 +30,7 @@ gulp.task('views', function buildHTML() {
       })))
     .pipe(gulp.dest('./'));
 });
-                                
+
 gulp.task('watch', function () {
   gulp.watch(['./*.pug', './*.less'], ['views']);
 });

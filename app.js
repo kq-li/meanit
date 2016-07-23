@@ -51,6 +51,21 @@ app.controller('PostsCtrl',
                 'posts',
                 function ($scope, $stateParams, posts) {
                   $scope.post = posts.posts[$stateParams.id];
+
+                  $scope.addComment = function () {
+                    $scope.post.comments.push({
+                      author: $scope.author,
+                      body: $scope.body,
+                      upvotes: 0
+                    });
+
+                    $scope.author = '';
+                    $scope.body = '';
+                  };
+                  
+                  $scope.upvote = function (comment) {
+                    comment.upvotes++;
+                  };
                 }]);
 
 app.config(['$stateProvider',
