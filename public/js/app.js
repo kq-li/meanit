@@ -3,11 +3,11 @@ var app = angular.module('meanit', ['ui.router']);
 app.factory('posts',
             [function () {
               var o = {
-                posts: [{title: 'post 1', upvotes: 5},
-                        {title: 'post 2', upvotes: 12},
-                        {title: 'post 3', upvotes: 9},
-                        {title: 'post 4', upvotes: 1},
-                        {title: 'post 5', upvotes: 3}]
+                posts: [{title: 'post 1', upvotes: 5, comments: []},
+                        {title: 'post 2', upvotes: 12, comments: []},
+                        {title: 'post 3', upvotes: 9, comments: []},
+                        {title: 'post 4', upvotes: 1, comments: []},
+                        {title: 'post 5', upvotes: 3, comments: []}]
               };
 
               return o;
@@ -74,12 +74,12 @@ app.config(['$stateProvider',
               $stateProvider
                 .state('home', {
                   url: '/home',
-                  templateUrl: '/home.html',
+                  templateUrl: '/views/home.html',
                   controller: 'MainCtrl'
                 })
                 .state('posts', {
                   url: '/posts/{id}',
-                  templateUrl: '/posts.html',
+                  templateUrl: '/views/posts.html',
                   controller: 'PostsCtrl'
                 });
 
