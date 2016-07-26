@@ -85,5 +85,3 @@ app.config(['$stateProvider',
 
               $urlRouterProvider.otherwise('home');
             }]);
-
-
