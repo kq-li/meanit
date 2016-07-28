@@ -1,17 +1,27 @@
-div
-  h3
-    a(ng-show="post.link" href="{{post.link}}") {{post.title}}
-    div(ng-hide="post.link") {{post.title}}
-form(ng-show="isLoggedIn()", ng-submit="addComment()")
-  input(type="text", placeholder="Comment", ng-model="body")
-  button(type="submit") Comment
+div.post-header
+  div.upvote-wrapper(ng-controller="MainCtrl")
+    div.upvote.enabled(ng-show="isLoggedIn()", ng-click="upvote(post)") +
+    div.upvote(ng-hide="isLoggedIn()") +
+    div.rating {{post.rating}}
+    div.downvote.enabled(ng-show="isLoggedIn()", ng-click="downvote(post)") &#8208;
+  a.title(ng-show="post.link" href="{{post.link}}") {{post.title}}
+  div.title(ng-hide="post.link") {{post.title}}
+  div.author posted by {{post.author}}
+  div.body {{post.body}}
+form.comment-form(ng-show="isLoggedIn()", ng-submit="addComment()") New Comment
+  textarea(rows=5, placeholder="Comment", ng-model="body")
+  button(type="submit") Submit
 div(ng-hide="isLoggedIn()")
-  a(href="#/login") Login 
-  | or 
-  a(href="#/register") register 
-  | to post or comment.
-div.comment(ng-repeat="comment in post.comments | orderBy: '-upvotes'")
-  div.upvote.clickable(ng-show="isLoggedIn()", ng-click="upvote(comment)") ^
-  div.upvote(ng-hide="isLoggedIn()") ^
-  | {{comment.upvotes}} - by {{comment.author}}  
-  div.comment-body {{comment.body}}
+  a(href="#/login") Login
+  |  or 
+  a(href="#/register") register
+  |  to post or comment.
+div.comment(ng-repeat="comment in post.comments | orderBy: '-rating'")
+  div.upvote-wrapper
+    div.upvote.enabled(ng-show="isLoggedIn()", ng-click="upvote(comment)") +
+    div.upvote(ng-hide="isLoggedIn()") +
+    div.rating {{comment.rating}}
+    div.downvote.enabled(ng-show="isLoggedIn()", ng-click="downvote(comment)") &#8208;
+    div.downvote(ng-hide="isLoggedIn()") &#8208;
+  div.author {{comment.author}}  
+  div.body {{comment.body}}

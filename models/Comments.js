@@ -3,7 +3,7 @@ var mongoose = require('mongoose');
 var CommentSchema = new mongoose.Schema({
   author: String,
   body: String,
-  upvotes: {
+  rating: {
     type: Number,
     default: 0
   },
@@ -14,7 +14,12 @@ var CommentSchema = new mongoose.Schema({
 });
 
 CommentSchema.methods.upvote = function (cb) {
-  this.upvotes++;
+  this.rating++;
+  this.save(cb);
+};
+
+CommentSchema.methods.downvote = function (cb) {
+  this.rating--;
   this.save(cb);
 };
 

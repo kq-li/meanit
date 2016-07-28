@@ -4,19 +4,14 @@ html
     title Meanit
     link(rel="stylesheet", href="public/dist/styles.css")
   body(ng-app="meanit")
-    nav.navbar(ng-controller="NavCtrl")
-      ul.navbar-left
-        li
-          a.home(href="#") Meanit
-      ul.navbar-right
-        li(ng-show="isLoggedIn()")
-          a {{currentUser()}}
-        li(ng-show="isLoggedIn()")
-          a(href="", ng-click="logout()") Logout
-        li(ng-hide="isLoggedIn()")
-          a(href="#/register") Register
-        li(ng-hide="isLoggedIn()")
-          a(href="#/login") Login
+    div.navbar(ng-controller="NavCtrl")
+      div.navbar-left
+        a.home(href="#/home") Meanit
+      div.navbar-right
+        a(ng-show="isLoggedIn()") Welcome, {{currentUser()}}.
+        a(ng-show="isLoggedIn()", href="", ng-click="logout()") Logout
+        a(ng-hide="isLoggedIn()", href="#/register") Register
+        a(ng-hide="isLoggedIn()", href="#/login") Login
     div.content
       ui-view
     script(src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.10/angular.min.js")

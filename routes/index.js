@@ -21,7 +21,7 @@ router.get('/posts', function (req, res, next) {
   Post.find(function (err, posts) {
     if (err)
       return next(err);
-
+    
     res.json(posts);
   });
 });
@@ -29,7 +29,7 @@ router.get('/posts', function (req, res, next) {
 router.post('/posts', auth, function (req, res, next) {
   var post = new Post(req.body);
   post.author = req.payload.username;
-
+  
   post.save(function (err, post) {
     if (err)
       return next(err);
@@ -49,6 +49,15 @@ router.get('/posts/:post', function (req, res, next) {
 
 router.put('/posts/:post/upvote', auth, function (req, res) {
   req.post.upvote(function (err, post) {
+    if (err)
+      return next(err);
+
+    res.json(post);
+  });
+});
+
+router.put('/posts/:post/downvote', auth, function (req, res) {
+  req.post.downvote(function (err, post) {
     if (err)
       return next(err);
 
@@ -77,6 +86,15 @@ router.post('/posts/:post/comments', auth, function (req, res) {
 
 router.put('/posts/:post/comments/:comment/upvote', auth, function (req, res) {
   req.comment.upvote(function (err, comment) {
+    if (err)
+      return next(err);
+
+    res.json(comment);
+  });
+});
+
+router.put('/posts/:post/comments/:comment/downvote', auth, function (req, res) {
+  req.comment.downvote(function (err, comment) {
     if (err)
       return next(err);
 
