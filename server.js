@@ -7,9 +7,12 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var passport = require('passport');
 
 require('./models/Posts');
 require('./models/Comments');
+require('./models/Users');
+require('./config/passport');
 mongoose.connect('mongodb://localhost/posts');
 
 var routes = require('./routes/index');
@@ -29,6 +32,7 @@ app.use(cookieParser());
 app.use(require('less-middleware')(path.join(__dirname, 'public')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/views', express.static(path.join(__dirname, 'views')));
+app.use(passport.initialize());
 
 app.use('/', routes);
 

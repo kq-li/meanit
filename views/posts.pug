@@ -1,13 +1,17 @@
-div.page-header
-  h1 Meanit
+div
   h3
     a(ng-show="post.link" href="{{post.link}}") {{post.title}}
     div(ng-hide="post.link") {{post.title}}
-div.comment(ng-repeat="comment in post.comments | orderBy: '-upvotes'")
-  div.upvote(ng-click="upvote(comment)") ^
-  | {{comment.upvotes}} - by {{comment.author}}  
-  div.comment-body {{comment.body}}
-form(ng-submit="addComment()")
-  input(type="text", placeholder="Name", ng-model="author")
+form(ng-show="isLoggedIn()", ng-submit="addComment()")
   input(type="text", placeholder="Comment", ng-model="body")
   button(type="submit") Comment
+div(ng-hide="isLoggedIn()")
+  a(href="#/login") Login 
+  | or 
+  a(href="#/register") register 
+  | to post or comment.
+div.comment(ng-repeat="comment in post.comments | orderBy: '-upvotes'")
+  div.upvote.clickable(ng-show="isLoggedIn()", ng-click="upvote(comment)") ^
+  div.upvote(ng-hide="isLoggedIn()") ^
+  | {{comment.upvotes}} - by {{comment.author}}  
+  div.comment-body {{comment.body}}
