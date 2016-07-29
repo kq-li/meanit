@@ -33,6 +33,7 @@
   font-size: 20px;
   line-height: 30px;
   padding: 20px;
+  margin-bottom: 20px;
   .thin-border;
 
   input {
@@ -97,6 +98,52 @@
     background-color: #62929e;
     cursor: pointer;
   }
+}
+
+.div-rating {
+  padding: 10px;
+  min-height: 75px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 20px;
+  .thin-border;
+  
+  & > .body {
+    word-wrap: break-word;
+    padding-left: 45px;
+    white-space: pre-line;
+  }
+}
+
+.upvote-wrapper {
+  width: 30px;
+  height: 100%;
+  float: left;
+  margin-right: 15px;
+  text-align: center;
+  
+  & > .upvote {
+    margin-bottom: 3px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  & > .rating {
+
+  }
+
+  & > .downvote {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  & > .enabled {
+    cursor: pointer;
+  }      
 }
 
 .no-spacing {
@@ -193,121 +240,56 @@ html, body {
     }
 
     &.post {
-      display: block;
-      font-size: 16px;
-      line-height: 16px;
-      min-height: 50px;
-      padding: 10px;
-      border: 1px solid #b3c2ce;
-      margin: 5px 0px;
-      border-radius: 5px;
+      .div-rating;
 
       & > .title {
         font-size: 24px;
-        line-height: 24px;
-        display: block;
-        margin-top: 4px;
+        margin: 3px 0px;
       }
 
       & > .author {
-        font-size: 16px;
-        display: inline-block;
-        margin-top: 12px;
-        margin-right: 10px;
+        font-size: 12px;
+        margin-bottom: 1px;
       }
       
       & > .comments {
         font-size: 16px;
-        display: inline-block;
-        margin-top: 12px;
       }
     }
 
     &.post-header {
-      padding: 20px;
-      border: 2px solid #62929e;
-      min-height: 75px;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      font-size: 20px;
+      .div-rating;
+      .thick-border;
       
       & > .title {
         font-size: 24px;
-        display: block;
-        margin-bottom: 5px;
+        margin: 3px 0px;
       }
 
       & > .author {
         font-size: 12px;
-        margin-bottom: 4px;
+        margin-bottom: 10px;
       }
 
       & > .body {
         font-size: 16px;
-        line-height: 18px;
-        border: 0px;
-        word-wrap: break-word;
-        padding-left: 45px;
-        white-space: pre-line;
+        margin-bottom: 5px;
       }
     }
 
     &.comment {
-      display: block;
-      font-size: 16px;
-      line-height: 16px;
-      min-height: 51px;
-      padding: 10px;
-      border: 1px solid #b3c2ce;
-      margin: 5px 0px;
-      border-radius: 5px;
+      .div-rating;
 
       & > .author {
         font-size: 12px;
-        margin-bottom: 4px;
+        margin: 5px 0px;
       }
 
       & > .body {
         font-size: 16px;
-        line-height: 18px;
-        border: 0px;
-        word-wrap: break-word;
-        padding-left: 45px;
-        white-space: pre;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
       }
     }
-  }
-
-    .upvote-wrapper {
-    width: 30px;
-    height: 100%;
-    float: left;
-    margin-right: 15px;
-    text-align: center;
-    
-    & > .upvote {
-      margin-bottom: 3px;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-
-    & > .rating {
-
-    }
-
-    & > .downvote {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-    
-    & > .enabled {
-      cursor: pointer;
-    }      
   }
 }
 
