@@ -6,12 +6,13 @@ var jwt = require('express-jwt');
 var Post = mongoose.model('Post');
 var Comment = mongoose.model('Comment');
 var User = mongoose.model('User');
+
 var auth = jwt({
   secret: 'SECRET',
   userProperty: 'payload'
 });
 
-router.get('/', function (req, res, next) {
+router.get('/home', function (req, res, next) {
   res.render('index', {
     title: 'Meanit'
   });

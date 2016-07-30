@@ -12,10 +12,10 @@ div.post-header
 form.comment-form(ng-show="isLoggedIn()", ng-submit="addComment()") New Comment
   textarea(rows=5, placeholder="Comment", ng-model="body")
   button(type="submit") Submit
-div(ng-hide="isLoggedIn()")
-  a(href="#/login") Login
+div.alert(ng-hide="isLoggedIn()")
+  a(href="/login") Login
   |  or 
-  a(href="#/register") register
+  a(href="/register") register
   |  to post or comment.
 div.comment(ng-repeat="comment in post.comments | orderBy: '-rating'")
   div.upvote-wrapper

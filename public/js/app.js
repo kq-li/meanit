@@ -239,7 +239,8 @@ app.controller('NavCtrl', [
 app.config([
   '$stateProvider',
   '$urlRouterProvider',
-  function ($stateProvider, $urlRouterProvider) {
+  '$locationProvider',
+  function ($stateProvider, $urlRouterProvider, $locationProvider) {
     $stateProvider
       .state('home', {
         url: '/home',
@@ -294,7 +295,8 @@ app.config([
           }
         ]
       });
-    
+
+    $locationProvider.html5Mode(true);
     $urlRouterProvider.otherwise('home');
   }
 ]);

@@ -4,9 +4,9 @@ form.post-form(ng-show="isLoggedIn()", ng-submit="addPost()") New Post
   textarea(rows=5, placeholder="Text", ng-model="body")
   button(type="submit") Submit
 div.alert(ng-hide="isLoggedIn()")
-  a(href="#/login") Login
+  a(href="/login") Login
   |  or 
-  a(href="#/register") register
+  a(href="/register") register
   |  to post or comment.
 div.post(ng-repeat="post in posts | orderBy: '-rating'")
   div.upvote-wrapper
@@ -19,5 +19,5 @@ div.post(ng-repeat="post in posts | orderBy: '-rating'")
     a(ng-show="post.link", href="{{post.link}}") {{post.title}}
     div(ng-hide="post.link") {{post.title}}
   div.author posted by {{post.author}}
-  a.comments(href="#/posts/{{post._id}}")
+  a.comments(href="/posts/{{post._id}}")
     | {{post.comments.length == 1 ? '1 comment' : post.comments.length + ' comments'}}
