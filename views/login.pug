@@ -1,5 +1,4 @@
-div.error(ng-show="error")
-  span {{error.message}}
+div.error(ng-show="error") {{error.message}}
 form.login-form(ng-submit="login()")
   h3 Login
   input(type="text", placeholder="Username", ng-model="user.username")

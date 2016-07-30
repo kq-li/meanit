@@ -12,13 +12,27 @@ var auth = jwt({
   userProperty: 'payload'
 });
 
-router.get('/home', function (req, res, next) {
+function findByUsername(username, cb) {
+  User.findOne({
+    username: username
+  }, function (err, user) {
+    if (err)
+      throw err;
+
+    if (!user)
+      throw new Error('Can\'t find user!');
+
+    cb(user);
+  });
+};
+
+router.get('/api/home', function (req, res, next) {
   res.render('index', {
     title: 'Meanit'
   });
 });
 
-router.get('/posts', function (req, res, next) {
+router.get('/api/posts', function (req, res, next) {
   Post.find(function (err, posts) {
     if (err)
       return next(err);
@@ -27,7 +41,7 @@ router.get('/posts', function (req, res, next) {
   });
 });
 
-router.post('/posts', auth, function (req, res, next) {
+router.post('/api/posts', auth, function (req, res, next) {
   var post = new Post(req.body);
   post.author = req.payload.username;
   
@@ -39,7 +53,7 @@ router.post('/posts', auth, function (req, res, next) {
   });
 });
 
-router.get('/posts/:post', function (req, res, next) {
+router.get('/api/posts/:post', function (req, res, next) {
   req.post.populate('comments', function (err, post) {
     if (err)
       return next(err);
@@ -48,25 +62,41 @@ router.get('/posts/:post', function (req, res, next) {
   });    
 });
 
-router.put('/posts/:post/upvote', auth, function (req, res) {
-  req.post.upvote(function (err, post) {
+router.put('/api/posts/:post/upvote', auth, function (req, res) {
+  var post = req.post;
+  var user = req.payload.username;
+  
+  var cb = function (err, post) {
     if (err)
       return next(err);
 
     res.json(post);
-  });
+  };
+    
+  if (post.hasDownvoted(user)|| !post.hasUpvoted(user)) 
+    post.upvote(user, cb);
+  else if (post.hasUpvoted(user)) 
+    post.unvote(user, cb);
 });
 
-router.put('/posts/:post/downvote', auth, function (req, res) {
-  req.post.downvote(function (err, post) {
+router.put('/api/posts/:post/downvote', auth, function (req, res) {
+  var post = req.post;
+  var user = req.payload.username;
+
+  var cb = function (err, post) {
     if (err)
       return next(err);
-
+    
     res.json(post);
-  });
+  };
+    
+  if (post.hasUpvoted(user) || !post.hasDownvoted(user))
+    post.downvote(user, cb);
+  else if (post.hasDownvoted(user))
+    post.unvote(user, cb);
 });
 
-router.post('/posts/:post/comments', auth, function (req, res) {
+router.post('/api/posts/:post/comments', auth, function (req, res) {
   var comment = new Comment(req.body);
   comment.post = req.post;
   comment.author = req.payload.username;
@@ -85,25 +115,41 @@ router.post('/posts/:post/comments', auth, function (req, res) {
   });
 });
 
-router.put('/posts/:post/comments/:comment/upvote', auth, function (req, res) {
-  req.comment.upvote(function (err, comment) {
+router.put('/api/posts/:post/comments/:comment/upvote', auth, function (req, res) {
+  var comment = req.comment;
+  var user = req.payload.username;
+
+  var cb = function (err, comment) {
     if (err)
       return next(err);
 
     res.json(comment);
-  });
+  };
+
+  if (comment.hasDownvoted(user) || !comment.hasUpvoted(user))
+    comment.upvote(user, cb);
+  else if (comment.hasUpvoted(user))
+    comment.unvote(user, cb);
 });
 
-router.put('/posts/:post/comments/:comment/downvote', auth, function (req, res) {
-  req.comment.downvote(function (err, comment) {
+router.put('/api/posts/:post/comments/:comment/downvote', auth, function (req, res) {
+  var comment = req.comment;
+  var user = req.payload.username;
+
+  var cb = function (err, comment) {
     if (err)
       return next(err);
 
     res.json(comment);
-  });
+  };
+
+  if (comment.hasUpvoted(user) || !comment.hasDownvoted(user))
+    comment.downvote(user, cb);
+  else if (comment.hasDownvoted(user))
+    comment.unvote(user, cb);
 });
 
-router.post('/register', function (req, res, next) {
+router.post('/api/register', function (req, res, next) {
   if (!req.body.username || !req.body.password) 
     return res.status(400).json({
       message: 'Please fill out all fields!'
@@ -123,23 +169,29 @@ router.post('/register', function (req, res, next) {
   });
 });    
 
-router.post('/login', function (req, res, next) {
+router.post('/api/login', function (req, res, next) {
   if (!req.body.username || !req.body.password)
     return res.status(400).json({
       message: 'Please fill out all fields!'
     });
 
   passport.authenticate('local', function (err, user, info) {
-    if (err)
+    if (err) 
       return next(err);
 
-    if (user)
+    if (user && user.validPassword(req.body.password))
       return res.json({
         token: user.generateJWT()
       });
-    else
-      return res.status(401).json(info);
+    else 
+      return res.status(401).json({
+        message: 'Incorrect username or password!'
+      });
   })(req, res, next);
+});
+
+router.get('*', function (req, res, next) {
+  res.redirect('/api/home');
 });
 
 router.param('post', function (req, res, next, id) {
@@ -171,5 +223,6 @@ router.param('comment', function (req, res, next, id) {
     return next();
   });
 });
+
 
 module.exports = router;

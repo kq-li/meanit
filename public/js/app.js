@@ -7,15 +7,15 @@ app.factory('posts', [
     var service = {
       posts: []
     };
-
+    
     service.getAllPosts = function () {
-      return $http.get('/posts').success(function (data) {
+      return $http.get('/api/posts').success(function (data) {
         angular.copy(data, service.posts);
       });
     };
 
     service.createPost = function (post) {
-      return $http.post('/posts', post, {
+      return $http.post('/api/posts', post, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
@@ -25,33 +25,51 @@ app.factory('posts', [
     };
 
     service.upvotePost = function (post) {
-      return $http.put('/posts/' + post._id + '/upvote', null, {
+      var outer = this;
+      
+      return $http.put('/api/posts/' + post._id + '/upvote', null, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
       }).success(function (data) {
-        post.rating++;
+        outer.updatePost(post, data);
       });
     };
 
     service.downvotePost = function (post) {
-      return $http.put('/posts/' + post._id + '/downvote', null, {
+      var outer = this;
+      
+      return $http.put('/api/posts/' + post._id + '/downvote', null, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
       }).success(function (data) {
-        post.rating--;
+        outer.updatePost(post, data);
       });
+    };
+
+    service.hasUpvotedPost = function (post) {
+      return post.upvoters.indexOf(auth.currentUser()) != -1;
+    };
+
+    service.hasDownvotedPost = function (post) {
+      return post.downvoters.indexOf(auth.currentUser()) != -1;
     };
     
     service.getPost = function (id) {
-      return $http.get('/posts/' + id).then(function (res) {
+      return $http.get('/api/posts/' + id).then(function (res) {
         return res.data;
       });
     };
 
+    service.updatePost = function (post, data) {
+      post.rating = data.rating;
+      post.upvoters = data.upvoters;
+      post.downvoters = data.downvoters;
+    };
+
     service.addComment = function (id, comment) {
-      return $http.post('/posts/' + id + '/comments', comment, {
+      return $http.post('/api/posts/' + id + '/comments', comment, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
@@ -59,29 +77,47 @@ app.factory('posts', [
     };      
 
     service.upvoteComment = function (id, comment) {
+      var outer = this;
+      
       return $http
-        .put('/posts/' + id + '/comments/' + comment._id + '/upvote', null, {
+        .put('/api/posts/' + id + '/comments/' + comment._id + '/upvote', null, {
           headers: {
             Authorization: 'Bearer ' + auth.getToken()
           }
         })
         .success(function (data) {
-          comment.rating++;
+          outer.updateComment(comment, data);
         });
     };
 
     service.downvoteComment = function (id, comment) {
+      var outer = this;
+      
       return $http
-        .put('/posts/' + id + '/comments/' + comment._id + '/downvote', null, {
+        .put('/api/posts/' + id + '/comments/' + comment._id + '/downvote', null, {
           headers: {
             Authorization: 'Bearer ' + auth.getToken()
           }
         })
         .success(function (data) {
-          comment.rating--;
+          outer.updateComment(comment, data);
         });
     };
-    
+
+    service.hasUpvotedComment = function (comment) {
+      return comment.upvoters.indexOf(auth.currentUser()) != -1;
+    };
+
+    service.hasDownvotedComment = function (comment) {
+      return comment.downvoters.indexOf(auth.currentUser()) != -1;
+    };
+
+    service.updateComment = function (comment, data) {
+      comment.rating = data.rating;
+      comment.upvoters = data.upvoters;
+      comment.downvoters = data.downvoters;
+    };
+
     return service;
   }
 ]);
@@ -120,13 +156,13 @@ app.factory('auth', [
     };
 
     auth.register = function (user) {
-      return $http.post('/register', user).success(function (data) {
+      return $http.post('/api/register', user).success(function (data) {
         auth.saveToken(data.token);
       });
     };
 
     auth.login = function (user) {
-      return $http.post('/login', user).success(function (data) {
+      return $http.post('/api/login', user).success(function (data) {
         auth.saveToken(data.token);
       });
     };
@@ -146,6 +182,9 @@ app.controller('MainCtrl', [
   function ($scope, posts, auth) {
     $scope.posts = posts.posts;
     $scope.isLoggedIn = auth.isLoggedIn;
+    $scope.currentUser = auth.currentUser;
+    $scope.hasUpvotedPost = posts.hasUpvotedPost;
+    $scope.hasDownvotedPost = posts.hasDownvotedPost;
     
     $scope.addPost = function () {
       if (!$scope.title || $scope.title === '')
@@ -180,7 +219,10 @@ app.controller('PostsCtrl', [
   function ($scope, posts, post, auth) {
     $scope.post = post;
     $scope.isLoggedIn = auth.isLoggedIn;
-    
+    $scope.currentUser = auth.currentUser;
+    $scope.hasUpvotedComment = posts.hasUpvotedComment;
+    $scope.hasDownvotedComment = posts.hasDownvotedComment;
+
     $scope.addComment = function () {
       posts.addComment(post._id, {
         body: $scope.body
