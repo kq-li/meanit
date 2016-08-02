@@ -140,10 +140,18 @@ app.factory('auth', [
       var token = auth.getToken();
 
       if (token) {
-        var payload = JSON.parse($window.atob(token.split('.')[1]));
-        return payload.exp > Date.now() / 1000;
-      } 
+        try {
+          var payload = JSON.parse($window.atob(token.split('.')[1]));
+          var valid = payload.exp > Date.now() / 1000;
 
+          if (valid) 
+            return true;
+        } catch (e) {
+
+        }
+      }
+
+      auth.logout();
       return false;
     };
 
@@ -340,15 +348,5 @@ app.config([
 
     $locationProvider.html5Mode(true);
     $urlRouterProvider.otherwise('home');
-  }
-]);
-
-app.run([
-  '$rootScope',
-  function ($rootScope) {
-    $rootScope.$on('$stateChangeSuccess', function(e, current, pre) {
-      console.log('Hello');
-      console.log(current);
-    });
   }
 ]);

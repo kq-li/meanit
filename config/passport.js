@@ -13,12 +13,12 @@ passport.use(
 
       if (!user)
         return done(null, false, {
-          message: 'Incorrect username.'
+          message: 'Incorrect username or password.'
         });
 
-      if (!user.validPassword)
+      if (!user.validPassword(password))
         return done(null, false, {
-          message: 'Incorrect password.'
+          message: 'Incorrect username or password.'
         });
 
       return done(null, user);

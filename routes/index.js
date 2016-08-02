@@ -12,20 +12,6 @@ var auth = jwt({
   userProperty: 'payload'
 });
 
-function findByUsername(username, cb) {
-  User.findOne({
-    username: username
-  }, function (err, user) {
-    if (err)
-      throw err;
-
-    if (!user)
-      throw new Error('Can\'t find user!');
-
-    cb(user);
-  });
-};
-
 router.get('/api/home', function (req, res, next) {
   res.render('index');
 });
@@ -177,14 +163,12 @@ router.post('/api/login', function (req, res, next) {
     if (err) 
       return next(err);
 
-    if (user && user.validPassword(req.body.password))
+    if (user)
       return res.json({
         token: user.generateJWT()
       });
     else 
-      return res.status(401).json({
-        message: 'Incorrect username or password!'
-      });
+      return res.status(401).json(info);
   })(req, res, next);
 });
 
