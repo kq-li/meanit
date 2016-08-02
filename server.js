@@ -29,7 +29,6 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 app.use(cookieParser());
-app.use(require('less-middleware')(path.join(__dirname, 'public')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/views', express.static(path.join(__dirname, 'views')));
 app.use(passport.initialize());

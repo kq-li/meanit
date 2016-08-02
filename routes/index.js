@@ -27,9 +27,7 @@ function findByUsername(username, cb) {
 };
 
 router.get('/api/home', function (req, res, next) {
-  res.render('index', {
-    title: 'Meanit'
-  });
+  res.render('index');
 });
 
 router.get('/api/posts', function (req, res, next) {
@@ -191,7 +189,7 @@ router.post('/api/login', function (req, res, next) {
 });
 
 router.get('*', function (req, res, next) {
-  res.redirect('/api/home');
+  res.render('index');
 });
 
 router.param('post', function (req, res, next, id) {

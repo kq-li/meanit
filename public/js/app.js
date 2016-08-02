@@ -342,3 +342,13 @@ app.config([
     $urlRouterProvider.otherwise('home');
   }
 ]);
+
+app.run([
+  '$rootScope',
+  function ($rootScope) {
+    $rootScope.$on('$stateChangeSuccess', function(e, current, pre) {
+      console.log('Hello');
+      console.log(current);
+    });
+  }
+]);
