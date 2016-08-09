@@ -11,12 +11,7 @@ passport.use(
       if (err)
         return done(err);
 
-      if (!user)
-        return done(null, false, {
-          message: 'Incorrect username or password.'
-        });
-
-      if (!user.validPassword(password))
+      if (!user || !user.validPassword(password))
         return done(null, false, {
           message: 'Incorrect username or password.'
         });
