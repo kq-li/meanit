@@ -67,9 +67,11 @@ router.get('/api/posts', silentAuth, function (req, res, next) {
           post.hasUpvotedPost = user.hasUpvotedPost(post);
           post.hasDownvotedPost = user.hasDownvotedPost(post);
         });
-      }));
 
-    res.json(posts);
+        res.json(posts);
+      }));
+    else
+      res.json(posts);
   }));
 });
 
@@ -95,13 +97,12 @@ router.get('/api/posts/:post', silentAuth, function (req, res, next) {
         post.comments.forEach(function (comment, index) {
           post.comments[index].hasUpvotedComment = user.hasUpvotedComment(comment);
           post.comments[index].hasDownvotedComment = user.hasDownvotedComment(comment);
-          console.log(post.comments[index] + '');
         });
-        console.log(post.comments + '');
+
+        res.json(post);
       }));
-
-
-    res.json(post);
+    else
+      res.json(post);
   }));
 });
 
@@ -152,6 +153,8 @@ router.post('/api/posts/:post/comments', requireAuth, function (req, res, next) 
     var comment = new Comment(req.body);
     comment.post = req.post;
     comment.author = req.payload.username;
+    comment.hasUpvotedComment = false;
+    comment.hasDownvotedComment = false;
     
     comment.save(generateCallback(next, function (comment) {
       user.addComment(comment, generateCallback(next, function (user) {
@@ -250,26 +253,17 @@ router.post('/api/login', function (req, res, next) {
 });
 
 router.get('/api/users/', function (req, res, next) {
-  User.find(function (err, users) {
-    if (err)
-      return next(err);
-
+  User.find(generateCallback(next, function (users) {
     res.json(users);
-  });
+  }));
 });
 
 router.get('/api/users/:user', function (req, res, next) {
-  req.user.populate('posts', function (err, user) {
-    if (err)
-      return next(err);
-    
-    user.populate('comments', function (err, user) {
-      if (err)
-        return next(err);
-      
+  req.user.populate('posts', generateCallback(next, function (user) {
+    user.populate('comments', generateCallback(next, function (user) {
       res.json(user);
-    });
-  });  
+    }));
+  }));
 });
 
 router.get('*', function (req, res, next) {
@@ -277,9 +271,7 @@ router.get('*', function (req, res, next) {
 });
 
 router.param('post', function (req, res, next, id) {
-  var query = Post.findById(id);
-
-  query.exec(function (err, post) {
+  Post.findById(id, function (err, post) {
     if (err)
       return next(err);
 
@@ -292,9 +284,7 @@ router.param('post', function (req, res, next, id) {
 });
 
 router.param('comment', function (req, res, next, id) {
-  var query = Comment.findById(id);
-
-  query.exec(function (err, comment) {
+  Comment.findById(id, function (err, comment) {
     if (err)
       return next(err);
 
@@ -306,13 +296,11 @@ router.param('comment', function (req, res, next, id) {
   });
 });
 
-router.param('user', function (req, res, next, id) {
-  var query = User.findById(id);
-
-  query.exec(function (err, user) {
+router.param('user', function (req, res, next, name) {
+  User.findUser(name, function (err, user) {
     if (err)
       return next(err);
-
+    
     if (!user)
       return next(new Error('Can\'t find user!'));
 

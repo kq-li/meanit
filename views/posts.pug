@@ -1,9 +1,9 @@
 div.post-header
   div.upvote-wrapper(ng-controller="MainCtrl")
-    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvotedPost(post) ? 'voted' : ''", ng-click="upvote(post)") +
+    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvotedPost(post) ? 'voted' : ''", ng-click="upvotePost(post)") +
     div.upvote(ng-hide="isLoggedIn()") +
     div.rating {{post.rating}}
-    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedPost(post) ? 'voted' : ''", ng-click="downvote(post)") -
+    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedPost(post) ? 'voted' : ''", ng-click="downvotePost(post)") -
     div.downvote(ng-hide="isLoggedIn()") -
   div.title
     a(ng-show="post.link" href="{{post.link}}") {{post.title}}
@@ -20,10 +20,10 @@ div.alert(ng-hide="isLoggedIn()")
   |  to post or comment.
 div.comment(ng-repeat="comment in post.comments | orderBy: '-rating'")
   div.upvote-wrapper
-    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvotedComment(comment) ? 'voted' : ''", ng-click="upvote(comment)") +
+    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvotedComment(comment) ? 'voted' : ''", ng-click="upvoteComment(comment)") +
     div.upvote(ng-hide="isLoggedIn()") +
     div.rating {{comment.rating}}
-    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedComment(comment) ? 'voted' : ''", ng-click="downvote(comment)") -
+    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedComment(comment) ? 'voted' : ''", ng-click="downvoteComment(comment)") -
     div.downvote(ng-hide="isLoggedIn()") -
   div.author {{comment.author}}  
   div.body {{comment.body}}

@@ -251,7 +251,7 @@ html, body {
       margin-bottom: 10px;
     }
     
-    &.post {
+    &.post-summary {
       .div-rating;
 
       & > .title {
@@ -269,6 +269,25 @@ html, body {
       }
     }
 
+    &.post {
+      .div-rating;
+      
+      & > .title {
+        font-size: 24px;
+        margin: 3px 0px;
+      }
+
+      & > .author {
+        font-size: 12px;
+        margin-bottom: 10px;
+      }
+
+      & > .body {
+        font-size: 16px;
+        margin-bottom: 5px;
+      }
+    }
+    
     &.post-header {
       .div-rating;
       .thick-border;
@@ -301,6 +320,21 @@ html, body {
         font-size: 16px;
         margin-bottom: 5px;
       }
+    }
+
+    &.user {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    &.post-title {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    &.comment-title {
+      font-size: 20px;
+      margin-bottom: 8px;
     }
   }
 }

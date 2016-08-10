@@ -8,12 +8,12 @@ div.alert(ng-hide="isLoggedIn()")
   |  or 
   a(href="/register") register
   |  to post or comment.
-div.post(ng-repeat="post in posts | orderBy: '-rating'")
+div.post-summary(ng-repeat="post in posts | orderBy: '-rating'")
   div.upvote-wrapper
-    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvotedPost(post) ? 'voted' : ''", ng-click="upvote(post)") +
+    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvotedPost(post) ? 'voted' : ''", ng-click="upvotePost(post)") +
     div.upvote(ng-hide="isLoggedIn()") +
     div.rating {{post.rating}}
-    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedPost(post) ? 'voted' : ''", ng-click="downvote(post)") -
+    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedPost(post) ? 'voted' : ''", ng-click="downvotePost(post)") -
     div.downvote(ng-hide="isLoggedIn()") -
   div.title
     a(ng-show="post.link", href="{{post.link}}") {{post.title}}

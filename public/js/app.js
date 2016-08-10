@@ -144,12 +144,13 @@ app.factory('users', [
       });
     };
 
-    userServ.getUser = function (id) {
-      console.log('getting user ' + id);
-      return $http.get('/api/users/' + id).then(function (res) {
+    userServ.getUser = function (name) {
+      return $http.get('/api/users/' + name).then(function (res) {
         return res.data;
       });
     };
+
+    return userServ;
   }
 ]);
 
@@ -240,11 +241,11 @@ app.controller('MainCtrl', [
       $scope.body = '';
     };
 
-    $scope.upvote = function (post) {
+    $scope.upvotePost = function (post) {
       posts.upvotePost(post);
     };
 
-    $scope.downvote = function (post) {
+    $scope.downvotePost = function (post) {
       posts.downvotePost(post);
     };
   }
@@ -266,28 +267,52 @@ app.controller('PostsCtrl', [
       posts.addComment(post._id, {
         body: $scope.body
       }).success(function (comment) {
-        $scope.post.comments.push(comment);
+        post.comments.push(comment);
       });
       
       $scope.body = '';
     };
     
-    $scope.upvote = function (comment) {
-      posts.upvoteComment(post._id, comment);
+    $scope.upvoteComment = function (comment) {
+      posts.upvoteComment(comment.post, comment);
     };
 
-    $scope.downvote = function (comment) {
-      posts.downvoteComment(post._id, comment);
+    $scope.downvoteComment = function (comment) {
+      posts.downvoteComment(comment.post, comment);
     };
   }
 ]);
 
 app.controller('UsersCtrl', [
   '$scope',
+  'auth',
+  'posts',
   'users',
   'user',
-  function ($scope, users, user) {
+  function ($scope, auth, posts, users, user) {
     $scope.user = user;
+    $scope.isLoggedIn = auth.isLoggedIn;
+    $scope.currentUser = auth.currentUser;
+    $scope.hasUpvotedPost = posts.hasUpvotedPost;
+    $scope.hasDownvotedPost = posts.hasDownvotedPost;
+    $scope.hasUpvotedComment = posts.hasUpvotedComment;
+    $scope.hasDownvotedComment = posts.hasDownvotedComment;
+
+    $scope.upvotePost = function (post) {
+      posts.upvotePost(post);
+    };
+
+    $scope.downvotePost = function (post) {
+      posts.downvotePost(post);
+    };
+    
+    $scope.upvoteComment = function (comment) {
+      posts.upvoteComment(comment.post, comment);
+    };
+
+    $scope.downvoteComment = function (comment) {
+      posts.downvoteComment(comment.post, comment);
+    };
   }
 ]);
 
@@ -360,7 +385,7 @@ app.config([
         }
       })
       .state('users', {
-        url: '/users/{id}',
+        url: '/users/{name}',
         templateUrl: '/views/users.html',
         controller: 'UsersCtrl',
         resolve: {
@@ -368,8 +393,7 @@ app.config([
             '$stateParams',
             'users',
             function ($stateParams, users) {
-              console.log('hi');
-              return users.getUser($stateParams.id);
+              return users.getUser($stateParams.name);
             }
           ]
         }
