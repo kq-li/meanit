@@ -25,4 +25,9 @@ CommentSchema.methods.downvote = function (user) {
   this.save();
 };
 
+CommentSchema.methods.edit = function (body, cb) {
+  this.body = body;
+  this.save(cb);
+};
+
 mongoose.model('Comment', CommentSchema);

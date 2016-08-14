@@ -7,10 +7,13 @@ div.post(ng-repeat="post in user.posts")
     div.rating {{post.rating}}
     div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedPost(post) ? 'voted' : ''", ng-click="downvotePost(post)") -
     div.downvote(ng-hide="isLoggedIn()") -
-  div.title
-    a(ng-show="post.link" href="{{post.link}}") {{post.title}}
-    div(ng-hide="post.link") {{post.title}}
-  div.body {{post.body}}
+  div.post-content
+    div.title
+      a(ng-show="post.link" href="{{post.link}}") {{post.title}}
+      div(ng-hide="post.link") {{post.title}}
+    div.body {{post.body}}
+    a.comments(href="/posts/{{post._id}}")
+      | {{post.comments.length == 1 ? '1 comment' : post.comments.length + ' comments'}}
 div.comment-title Comments
 div.comment(ng-repeat="comment in user.comments")
   div.upvote-wrapper
@@ -19,4 +22,5 @@ div.comment(ng-repeat="comment in user.comments")
     div.rating {{comment.rating}}
     div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedComment(comment) ? 'voted' : ''", ng-click="downvoteComment(comment)") -
     div.downvote(ng-hide="isLoggedIn()") -
-  div.body {{comment.body}}
+  div.comment-content
+    div.body {{comment.body}}

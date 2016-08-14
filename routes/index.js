@@ -148,6 +148,17 @@ router.put('/api/posts/:post/downvote', requireAuth, function (req, res, next) {
   }));
 });
 
+router.post('/api/posts/:post/edit', requireAuth, function (req, res, next) {
+  if (req.payload.username === req.post.author)
+    req.post.edit(req.body.body, function () {
+      res.json(req.post);
+    });
+  else
+    res.status(400).json({
+      message: 'You aren\'t the author of this post!'
+    });
+});
+
 router.post('/api/posts/:post/comments', requireAuth, function (req, res, next) {
   User.findUser(req.payload.username, generateCallback(next, function (user) {
     var comment = new Comment(req.body);
@@ -206,6 +217,17 @@ router.put('/api/posts/:post/comments/:comment/downvote', requireAuth, function 
     else if (user.hasDownvotedComment(comment))
       user.unvoteComment(comment, cb);
   }));
+});
+
+router.post('/api/posts/:post/comments/:comment/edit', requireAuth, function (req, res, next) {
+  if (req.payload.username === req.comment.author)
+    req.comment.edit(req.body.body, function () {
+      res.json(req.comment);
+    });
+  else
+    res.status(400).json({
+      message: 'You aren\'t the author of this comment!'
+    });
 });
 
 router.post('/api/register', function (req, res, next) {

@@ -5,11 +5,18 @@ div.post-header
     div.rating {{post.rating}}
     div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedPost(post) ? 'voted' : ''", ng-click="downvotePost(post)") -
     div.downvote(ng-hide="isLoggedIn()") -
-  div.title
-    a(ng-show="post.link" href="{{post.link}}") {{post.title}}
-    div(ng-hide="post.link") {{post.title}}
-  div.author posted by {{post.author}}
-  div.body {{post.body}}
+  div.post-content
+    div.title
+      a(ng-show="post.link" href="{{post.link}}") {{post.title}}
+      div(ng-hide="post.link") {{post.title}}
+    div.author posted by {{post.author}}
+    div.body
+      form.post-edit-form(ng-show="postForm.isEditing", ng-submit="sendPost()")
+        textarea(ng-model="postForm.body")
+        button(type="submit") Submit
+      div(ng-hide="postForm.isEditing") {{post.body}}
+    div.edit
+      a(ng-click="editPost()", ng-show="postForm.isAuthor && !postForm.isEditing") Edit
 form.comment-form(ng-show="isLoggedIn()", ng-submit="addComment()") New Comment
   textarea(rows=5, placeholder="Comment", ng-model="body")
   button(type="submit") Submit
@@ -25,5 +32,12 @@ div.comment(ng-repeat="comment in post.comments | orderBy: '-rating'")
     div.rating {{comment.rating}}
     div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedComment(comment) ? 'voted' : ''", ng-click="downvoteComment(comment)") -
     div.downvote(ng-hide="isLoggedIn()") -
-  div.author {{comment.author}}  
-  div.body {{comment.body}}
+  div.comment-content
+    div.author {{comment.author}}  
+    div.body
+      form.comment-edit-form(ng-show="commentForms[comment._id].isEditing", ng-submit="sendComment(comment)")
+        textarea(ng-model="commentForms[comment._id].body")
+        button(type="submit") Submit
+      div(ng-hide="commentForms[comment._id].isEditing") {{comment.body}}
+    div.edit
+      a(ng-click="editComment(comment)", ng-show="commentForms[comment._id].isAuthor && !commentForms[comment._id].isEditing") Edit

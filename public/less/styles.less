@@ -1,5 +1,7 @@
 @input-placeholder-color: #798086;
 @thin-border-color: #798086;
+@unvisited-link-color: #62929e;
+@visited-link-color: #2e6171;
 
 .input-placeholder-color() {
   &::-webkit-input-placeholder {
@@ -63,12 +65,13 @@
   textarea {
     resize: none;
     display: block;
-    width: 30%;
+    width: 50%;
     border: 1px solid @input-placeholder-color;
     padding: 5px;
     border-radius: 4px;
     font-family: 'Ubuntu', sans-serif;
     margin: 5px 0px;
+    font-size: 16px;
     
     &::-webkit-input-placeholder {
       color: @input-placeholder-color;
@@ -107,11 +110,15 @@
   margin-bottom: 20px;
   font-size: 20px;
   .thin-border;
-  
-  & > .body {
-    word-wrap: break-word;
+
+  & > :not(.upvote-wrapper) {
     padding-left: 45px;
-    white-space: pre-line;
+    
+    & .body {
+      word-wrap: break-word;
+      white-space: pre-line;
+      padding-bottom: 5px;
+    }
   }
 }
 
@@ -167,178 +174,243 @@ html, body {
   font-size: 16px;
   font-family: 'Ubuntu', sans-serif;
   .no-spacing;
-}
 
-.navbar {
-  width: 100%;
-  height: 40px;
-  margin-top: 0px;
-  border: 0px;
-  background-color: #2e6171;
-  position: fixed;
-  white-space: nowrap;
-  display: inline;
-
-  div {
+  & > .navbar {
+    width: 100%;
     height: 40px;
-    line-height: 40px;
-    list-style: none;
-    padding: 0px;
-    margin: 0px;
+    margin-top: 0px;
+    border: 0px;
+    background-color: #2e6171;
+    position: fixed;
+    white-space: nowrap;
+    display: inline;
 
-    a {
-      display: inline-block;
-      min-width: 80px;
-      height: 100%;
-      text-align: center;
-      text-decoration: none;
-      color: #b3c2ce;
-      transition: all 0.5s;
+    div {
+      height: 40px;
+      line-height: 40px;
+      list-style: none;
+      padding: 0px;
+      margin: 0px;
 
-      &.home {
+      a {
+        display: inline-block;
+        min-width: 80px;
+        height: 100%;
+        text-align: center;
+        text-decoration: none;
+        color: #b3c2ce;
+        transition: all 0.5s;
+
+        &.home {
+          font-size: 20px;
+          width: 100px;
+        }
+
+        &:hover {
+          color: #d4e5f4;
+        }
+      }
+
+      &.navbar-left {
+        float: left;
+      }
+
+      &.navbar-right {
+        float: right;
+      }
+    }
+  }
+
+  & > .content {
+    padding: 80px 40px;
+
+    form {
+      .form;
+      
+      &.register-form {
+
+      }
+
+      &.login-form {
+
+      }
+      
+      &.post-form {
+
+      }
+
+      &.post-edit-form {
+        width: 100%;
+        padding: 0px;
+        border: 0px;
+        margin: 0px;
+
+        textarea {
+          overflow: visible;
+          width: 95%;
+          height: 400px;
+          font-size: 16px;
+          margin-right: 20px;
+        }
+      }
+
+      &.comment-form {
+
+      }
+
+      &.comment-edit-form {
+        width: 100%;
+        padding: 0px;
+        border: 0px;
+        margin: 0px;
+
+        textarea {
+          overflow: visible;
+          width: 95%;
+          height: 100px;
+          font-size: 16px;
+          margin-right: 20px;
+        }
+      }
+    }
+
+    div {
+      &.alert {
+        display: inline-block;
         font-size: 20px;
-        width: 100px;
+        line-height: 30px;
+        padding: 5px 8px;
+        margin-bottom: 20px;
       }
 
-      &:hover {
-        color: #d4e5f4;
-      }
-    }
-
-    &.navbar-left {
-      float: left;
-    }
-
-    &.navbar-right {
-      float: right;
-    }
-  }
-}
-
-.content {
-  padding: 80px 40px;
-
-  form {
-    .form;
-    
-    &.register-form {
-
-    }
-
-    &.login-form {
-
-    }
-    
-    &.post-form {
-
-    }
-
-    &.comment-form {
-
-    }
-  }
-
-  div {
-    &.alert {
-      display: inline-block;
-      font-size: 20px;
-      line-height: 30px;
-      padding: 5px 8px;
-      margin-bottom: 20px;
-    }
-
-    &.error {
-      margin-bottom: 10px;
-    }
-    
-    &.post-summary {
-      .div-rating;
-
-      & > .title {
-        font-size: 24px;
-        margin: 3px 0px;
-      }
-
-      & > .author {
-        font-size: 12px;
-        margin-bottom: 1px;
-      }
-      
-      & > .comments {
-        font-size: 16px;
-      }
-    }
-
-    &.post {
-      .div-rating;
-      
-      & > .title {
-        font-size: 24px;
-        margin: 3px 0px;
-      }
-
-      & > .author {
-        font-size: 12px;
+      &.error {
         margin-bottom: 10px;
       }
-
-      & > .body {
-        font-size: 16px;
-        margin-bottom: 5px;
-      }
-    }
-    
-    &.post-header {
-      .div-rating;
-      .thick-border;
       
-      & > .title {
+      &.post-summary {
+        .div-rating;
+
+        & > .post-content {
+          & > .title {
+            font-size: 24px;
+            margin: 3px 0px;
+          }
+
+          & > .author {
+            font-size: 12px;
+            margin-bottom: 1px;
+          }
+          
+          & > .comments {
+            font-size: 16px;
+          }
+        }
+      }
+
+      &.post {
+        .div-rating;
+
+        & > .post-content {
+          & > .title {
+            font-size: 24px;
+            margin: 3px 0px;
+          }
+
+          & > .author {
+            font-size: 12px;
+            margin-bottom: 10px;
+          }
+
+          & > .body {
+            font-size: 16px;
+          }
+
+          & > .comments {
+            font-size: 12px;
+          }
+        }
+      }
+      
+      &.post-header {
+        .div-rating;
+        .thick-border;
+
+        & > .post-content {
+          & > .title {
+            font-size: 24px;
+            margin: 3px 0px;
+          }
+
+          & > .author {
+            font-size: 12px;
+            margin-bottom: 10px;
+          }
+
+          & > .body {
+            font-size: 16px;
+            margin-bottom: 5px;
+          }
+
+          & > .edit {
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+            color: @unvisited-link-color;
+          }
+        }
+      }
+
+      &.comment {
+        .div-rating;
+
+        & > .comment-content {
+          & > .author {
+            font-size: 12px;
+            margin: 5px 0px;
+          }
+
+          & > .body {
+            font-size: 16px;
+            margin-bottom: 5px;
+          }
+
+          & > .edit {
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+            color: @unvisited-link-color;
+          }
+        }
+      }
+
+      &.user {
         font-size: 24px;
-        margin: 3px 0px;
+        margin-bottom: 12px;
       }
 
-      & > .author {
-        font-size: 12px;
-        margin-bottom: 10px;
+      &.post-title {
+        font-size: 20px;
+        margin-bottom: 8px;
       }
 
-      & > .body {
-        font-size: 16px;
-        margin-bottom: 5px;
+      &.comment-title {
+        font-size: 20px;
+        margin-bottom: 8px;
       }
-    }
-
-    &.comment {
-      .div-rating;
-
-      & > .author {
-        font-size: 12px;
-        margin: 5px 0px;
-      }
-
-      & > .body {
-        font-size: 16px;
-        margin-bottom: 5px;
-      }
-    }
-
-    &.user {
-      font-size: 24px;
-      margin-bottom: 12px;
-    }
-
-    &.post-title {
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    &.comment-title {
-      font-size: 20px;
-      margin-bottom: 8px;
     }
   }
-}
 
-h1, h3 {
-  margin: 0px;
+  a {
+    &:link {
+      color: @unvisited-link-color;
+    }
+
+    &:visited {
+      color: @visited-link-color;
+    }
+  }
+
+  h1, h3 {
+    .no-spacing;
+  }
 }

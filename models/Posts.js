@@ -32,4 +32,9 @@ PostSchema.methods.addComment = function (comment, cb) {
   this.save(cb);
 };
 
+PostSchema.methods.edit = function (body, cb) {
+  this.body = body;
+  this.save(cb);
+};
+
 mongoose.model('Post', PostSchema);

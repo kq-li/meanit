@@ -1,5 +1,7 @@
 var app = angular.module('meanit', ['ui.router']);
 
+var x;
+
 app.factory('posts', [
   '$http',
   'auth',
@@ -70,10 +72,23 @@ app.factory('posts', [
       });
     };
 
+    postServ.sendPost = function (post, newPost) {
+      var outer = this;
+      
+      return $http.post('/api/posts/' + post._id + '/edit', newPost, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).success(function (data) {
+        outer.updatePost(post, data);
+      });
+    };
+    
     postServ.updatePost = function (post, data) {
       post.rating = data.rating;
       post.hasUpvotedPost = data.hasUpvotedPost;
       post.hasDownvotedPost = data.hasDownvotedPost;
+      post.body = data.body;
     };
 
     postServ.addComment = function (id, comment) {
@@ -119,11 +134,26 @@ app.factory('posts', [
     postServ.hasDownvotedComment = function (comment) {
       return comment.hasDownvotedComment;
     };
+
+    postServ.sendComment = function (comment, newComment) {
+      var outer = this;
+      
+      return $http
+        .post('/api/posts/' + comment.post + '/comments/' + comment._id + '/edit', newComment, {
+          headers: {
+            Authorization: 'Bearer ' + auth.getToken()
+          }
+        })
+        .success(function (data) {
+          outer.updateComment(comment, data);
+        });
+    };
     
     postServ.updateComment = function (comment, data) {
       comment.rating = data.rating;
       comment.hasUpvotedComment = data.hasUpvotedComment;
       comment.hasDownvotedComment = data.hasDownvotedComment;
+      comment.body = data.body;
     };
 
     return postServ;
@@ -178,12 +208,13 @@ app.factory('auth', [
 
           if (valid) 
             return true;
+
+          authServ.logout();
         } catch (e) {
 
         }
       }
 
-      authServ.logout();
       return false;
     };
 
@@ -209,6 +240,7 @@ app.factory('auth', [
         
     authServ.logout = function () {
       $window.localStorage.removeItem('meanit-token');
+      $window.location.reload(true);
     };
     
     return authServ;
@@ -263,14 +295,47 @@ app.controller('PostsCtrl', [
     $scope.hasUpvotedComment = posts.hasUpvotedComment;
     $scope.hasDownvotedComment = posts.hasDownvotedComment;
 
+    $scope.postForm = {
+      isAuthor: $scope.currentUser() === $scope.post.author,
+      isEditing: false,
+      body: ''
+    };
+
+    $scope.commentForms = {};
+
+    for (var i = 0; i < $scope.post.comments.length; i++)
+      $scope.commentForms[$scope.post.comments[i]._id] = {
+        isAuthor: $scope.currentUser() === $scope.post.comments[i].author,
+        isEditing: false,
+        body: ''
+      };
+    
     $scope.addComment = function () {
       posts.addComment(post._id, {
         body: $scope.body
       }).success(function (comment) {
         post.comments.push(comment);
+
+        $scope.commentForms[comment._id] = {
+          isAuthor: true,
+          isEditing: false,
+          body: ''
+        };
       });
       
       $scope.body = '';
+    };
+
+    $scope.editPost = function () {
+      $scope.setForm($scope.postForm, true, $scope.post.body);
+    };
+
+    $scope.sendPost = function () {
+      posts.sendPost($scope.post, {
+        body: $scope.postForm.body
+      });
+      
+      $scope.setForm($scope.postForm, false, '');
     };
     
     $scope.upvoteComment = function (comment) {
@@ -279,6 +344,23 @@ app.controller('PostsCtrl', [
 
     $scope.downvoteComment = function (comment) {
       posts.downvoteComment(comment.post, comment);
+    };
+
+    $scope.editComment = function (comment) {
+      $scope.setForm($scope.commentForms[comment._id], true, comment.body);
+    };        
+    
+    $scope.sendComment = function (comment) {
+      posts.sendComment(comment, {
+        body: $scope.commentForms[comment._id].body
+      });
+
+      $scope.setForm($scope.commentForms[comment._id], false, '');
+    };
+
+    $scope.setForm = function (form, isEditing, body) {
+      form.isEditing = isEditing;
+      form.body = body;
     };
   }
 ]);
