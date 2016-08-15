@@ -15,19 +15,14 @@ var CommentSchema = new mongoose.Schema({
   hasDownvotedComment: Boolean
 });
 
-CommentSchema.methods.upvote = function (user) {
+CommentSchema.methods.upvote = function () {
   this.rating++;
   this.save();
 };
 
-CommentSchema.methods.downvote = function (user) {
+CommentSchema.methods.downvote = function () {
   this.rating--;
   this.save();
-};
-
-CommentSchema.methods.edit = function (body, cb) {
-  this.body = body;
-  this.save(cb);
 };
 
 mongoose.model('Comment', CommentSchema);

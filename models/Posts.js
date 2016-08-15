@@ -32,8 +32,17 @@ PostSchema.methods.addComment = function (comment, cb) {
   this.save(cb);
 };
 
-PostSchema.methods.edit = function (body, cb) {
-  this.body = body;
+PostSchema.methods.deleteComment = function (comment, cb) {
+  this.comments.splice(this.comments.indexOf(comment));
+  comment.remove()
+  this.save(cb);
+};
+
+PostSchema.methods.deleteComments = function (cb) {
+  for (var i = 0; i < this.comments.length; i++)
+    this.comments[i].remove();
+
+  this.comments = [];
   this.save(cb);
 };
 

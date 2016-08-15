@@ -79,6 +79,22 @@ UserSchema.methods.addComment = function (comment, cb) {
   this.save(cb);
 };
 
+UserSchema.methods.deletePost = function (post, cb) {
+  post.deleteComments();
+  this.posts.splice(this.posts.indexOf(post));
+  post.remove();
+  console.log(this.posts);
+  this.save(cb);
+};
+
+UserSchema.methods.deleteComment = function (comment, cb) {
+  console.log(this.comments);
+  this.comments.splice(this.comments.indexOf(comment));
+  comment.remove();
+  console.log(this.comments);  
+  this.save(cb);
+};
+
 UserSchema.methods.upvotePost = function (post, cb) {
   this.upvotedPosts.push(post);
   post.upvote();

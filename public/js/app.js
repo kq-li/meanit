@@ -9,7 +9,7 @@ app.factory('posts', [
     var postServ = {
       posts: []
     };
-    
+
     postServ.getAllPosts = function () {
       return $http.get('/api/posts', {
         headers: {
@@ -31,26 +31,22 @@ app.factory('posts', [
     };
 
     postServ.upvotePost = function (post) {
-      var outer = this;
-      
       return $http.put('/api/posts/' + post._id + '/upvote', null, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
       }).success(function (data) {
-        outer.updatePost(post, data);
+        postServ.updatePost(post, data);
       });
     };
 
     postServ.downvotePost = function (post) {
-      var outer = this;
-      
       return $http.put('/api/posts/' + post._id + '/downvote', null, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
       }).success(function (data) {
-        outer.updatePost(post, data);
+        postServ.updatePost(post, data);
       });
     };
 
@@ -73,14 +69,22 @@ app.factory('posts', [
     };
 
     postServ.sendPost = function (post, newPost) {
-      var outer = this;
-      
       return $http.post('/api/posts/' + post._id + '/edit', newPost, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
       }).success(function (data) {
-        outer.updatePost(post, data);
+        postServ.updatePost(post, data);
+      });
+    };
+
+    postServ.deletePost = function (post) {
+      return $http.put('/api/posts/' + post._id + '/delete', null, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).success(function (data) {
+        postServ.posts.splice(postServ.posts.indexOf(data));
       });
     };
     
@@ -91,40 +95,40 @@ app.factory('posts', [
       post.body = data.body;
     };
 
-    postServ.addComment = function (id, comment) {
-      return $http.post('/api/posts/' + id + '/comments', comment, {
+    postServ.addComment = function (post, comment) {
+      var url = '/api/posts/' + post._id + '/comments';
+      
+      return $http.post(url, comment, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
+      }).success(function (data) {
+        post.comments.push(data);
       });
-    };      
-
-    postServ.upvoteComment = function (id, comment) {
-      var outer = this;
-      
-      return $http
-        .put('/api/posts/' + id + '/comments/' + comment._id + '/upvote', null, {
-          headers: {
-            Authorization: 'Bearer ' + auth.getToken()
-          }
-        })
-        .success(function (data) {
-          outer.updateComment(comment, data);
-        });
     };
 
-    postServ.downvoteComment = function (id, comment) {
-      var outer = this;
+    postServ.upvoteComment = function (comment) {
+      var url = '/api/posts/' + comment.post + '/comments/' + comment._id + '/upvote';
       
-      return $http
-        .put('/api/posts/' + id + '/comments/' + comment._id + '/downvote', null, {
-          headers: {
-            Authorization: 'Bearer ' + auth.getToken()
-          }
-        })
-        .success(function (data) {
-          outer.updateComment(comment, data);
-        });
+      return $http.put(url, null, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).success(function (data) {
+        postServ.updateComment(comment, data);
+      });
+    };
+
+    postServ.downvoteComment = function (comment) {
+      var url = '/api/posts/' + comment.post + '/comments/' + comment._id + '/downvote';
+      
+      return $http.put(url, null, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).success(function (data) {
+        postServ.updateComment(comment, data);
+      });
     };
 
     postServ.hasUpvotedComment = function (comment) {
@@ -136,17 +140,25 @@ app.factory('posts', [
     };
 
     postServ.sendComment = function (comment, newComment) {
-      var outer = this;
+      var url = '/api/posts/' + comment.post + '/comments/' + comment._id + '/edit';
       
-      return $http
-        .post('/api/posts/' + comment.post + '/comments/' + comment._id + '/edit', newComment, {
-          headers: {
-            Authorization: 'Bearer ' + auth.getToken()
-          }
-        })
-        .success(function (data) {
-          outer.updateComment(comment, data);
-        });
+      return $http.post(url, newComment, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).success(function (data) {
+        postServ.updateComment(comment, data);
+      });
+    };
+    
+    postServ.deleteComment = function (comment) {
+      var url = '/api/posts/' + comment.post + '/comments/' + comment._id + '/delete';
+      
+      return $http.put(url, null, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      });
     };
     
     postServ.updateComment = function (comment, data) {
@@ -266,11 +278,11 @@ app.controller('MainCtrl', [
         title: $scope.title,
         link: $scope.link,
         body: $scope.body
+      }).success(function (data) {
+        $scope.title = '';
+        $scope.link = '';
+        $scope.body = '';
       });
-      
-      $scope.title = '';
-      $scope.link = '';
-      $scope.body = '';
     };
 
     $scope.upvotePost = function (post) {
@@ -285,16 +297,18 @@ app.controller('MainCtrl', [
 
 app.controller('PostsCtrl', [
   '$scope',
+  '$state',
+  '$window',
   'posts',
   'post',
   'auth',
-  function ($scope, posts, post, auth) {
+  function ($scope, $state, $window, posts, post, auth) {
     $scope.post = post;
     $scope.isLoggedIn = auth.isLoggedIn;
     $scope.currentUser = auth.currentUser;
     $scope.hasUpvotedComment = posts.hasUpvotedComment;
     $scope.hasDownvotedComment = posts.hasDownvotedComment;
-
+    
     $scope.postForm = {
       isAuthor: $scope.currentUser() === $scope.post.author,
       isEditing: false,
@@ -310,22 +324,6 @@ app.controller('PostsCtrl', [
         body: ''
       };
     
-    $scope.addComment = function () {
-      posts.addComment(post._id, {
-        body: $scope.body
-      }).success(function (comment) {
-        post.comments.push(comment);
-
-        $scope.commentForms[comment._id] = {
-          isAuthor: true,
-          isEditing: false,
-          body: ''
-        };
-      });
-      
-      $scope.body = '';
-    };
-
     $scope.editPost = function () {
       $scope.setForm($scope.postForm, true, $scope.post.body);
     };
@@ -333,17 +331,37 @@ app.controller('PostsCtrl', [
     $scope.sendPost = function () {
       posts.sendPost($scope.post, {
         body: $scope.postForm.body
+      }).success(function (data) {
+        $scope.setForm($scope.postForm, false, '');
       });
-      
-      $scope.setForm($scope.postForm, false, '');
+    };
+
+    $scope.deletePost = function () {
+      posts.deletePost($scope.post).success(function (data) {
+        $state.go('home');
+      });
     };
     
+    $scope.addComment = function () {
+      posts.addComment($scope.post, {
+        body: $scope.body
+      }).success(function (data) {
+        $scope.commentForms[data._id] = {
+          isAuthor: true,
+          isEditing: false,
+          body: ''
+        };
+
+        $scope.body = '';
+      });
+    };
+
     $scope.upvoteComment = function (comment) {
-      posts.upvoteComment(comment.post, comment);
+      posts.upvoteComment(comment);
     };
 
     $scope.downvoteComment = function (comment) {
-      posts.downvoteComment(comment.post, comment);
+      posts.downvoteComment(comment);
     };
 
     $scope.editComment = function (comment) {
@@ -353,11 +371,17 @@ app.controller('PostsCtrl', [
     $scope.sendComment = function (comment) {
       posts.sendComment(comment, {
         body: $scope.commentForms[comment._id].body
+      }).success(function (data) {
+        $scope.setForm($scope.commentForms[comment._id], false, '');
       });
-
-      $scope.setForm($scope.commentForms[comment._id], false, '');
     };
 
+    $scope.deleteComment = function (comment) {
+      posts.deleteComment(comment).success(function (data) {
+        $scope.post.comments.splice($scope.post.comments.indexOf(data));
+      });
+    };
+    
     $scope.setForm = function (form, isEditing, body) {
       form.isEditing = isEditing;
       form.body = body;

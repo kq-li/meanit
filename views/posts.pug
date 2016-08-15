@@ -17,6 +17,8 @@ div.post-header
       div(ng-hide="postForm.isEditing") {{post.body}}
     div.edit
       a(ng-click="editPost()", ng-show="postForm.isAuthor && !postForm.isEditing") Edit
+    div.delete
+      a(ng-click="deletePost()", ng-show="postForm.isAuthor && !postForm.isEditing") Delete
 form.comment-form(ng-show="isLoggedIn()", ng-submit="addComment()") New Comment
   textarea(rows=5, placeholder="Comment", ng-model="body")
   button(type="submit") Submit
@@ -41,3 +43,5 @@ div.comment(ng-repeat="comment in post.comments | orderBy: '-rating'")
       div(ng-hide="commentForms[comment._id].isEditing") {{comment.body}}
     div.edit
       a(ng-click="editComment(comment)", ng-show="commentForms[comment._id].isAuthor && !commentForms[comment._id].isEditing") Edit
+    div.delete
+      a(ng-click="deleteComment(comment)", ng-show="commentForms[comment._id].isAuthor && !commentForms[comment._id].isEditing") Delete

@@ -159,17 +159,33 @@ router.post('/api/posts/:post/edit', requireAuth, function (req, res, next) {
     });
 });
 
+router.put('/api/posts/:post/delete', requireAuth, function (req, res, next) {
+  if (req.payload.username === req.post.author)
+    User.findUser(req.payload.username, generateCallback(next, function (user) {
+      user.deletePost(req.post, generateCallback(next, function (user) {
+        req.post.remove(generateCallback(next, function (post) {
+          res.json(post);
+        }));
+      }));
+    }));
+  else
+    res.status(400).json({
+      message: 'You aren\'t the author of this post!'
+    });
+});      
+
 router.post('/api/posts/:post/comments', requireAuth, function (req, res, next) {
   User.findUser(req.payload.username, generateCallback(next, function (user) {
     var comment = new Comment(req.body);
-    comment.post = req.post;
+    comment.post = req.post._id;
     comment.author = req.payload.username;
     comment.hasUpvotedComment = false;
     comment.hasDownvotedComment = false;
+    console.log(JSON.stringify(comment));
     
     comment.save(generateCallback(next, function (comment) {
       user.addComment(comment, generateCallback(next, function (user) {
-        comment.post.addComment(comment, generateCallback(next, function (post) {
+        req.post.addComment(comment, generateCallback(next, function (post) {
           res.json(comment);
         }));
       }));
@@ -221,9 +237,26 @@ router.put('/api/posts/:post/comments/:comment/downvote', requireAuth, function 
 
 router.post('/api/posts/:post/comments/:comment/edit', requireAuth, function (req, res, next) {
   if (req.payload.username === req.comment.author)
-    req.comment.edit(req.body.body, function () {
+    req.comment.update({
+      body: req.body.body
+    }, function () {
       res.json(req.comment);
     });
+  else
+    res.status(400).json({
+      message: 'You aren\'t the author of this comment!'
+    });
+});
+
+router.put('/api/posts/:post/comments/:comment/delete', requireAuth, function (req, res, next) {
+  if (req.payload.username === req.comment.author)
+    User.findUser(req.payload.username, generateCallback(next, function (user) {
+      user.deleteComment(req.comment, generateCallback(next, function (user) {
+        req.comment.remove(generateCallback(next, function (comment) {
+          res.json(comment);
+        }));
+      }));
+    }));
   else
     res.status(400).json({
       message: 'You aren\'t the author of this comment!'
