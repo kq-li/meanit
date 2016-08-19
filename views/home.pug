@@ -1,7 +1,22 @@
-form.post-form(ng-show="isLoggedIn()", ng-submit="addPost()") New Post
-  input(type="text", placeholder="Title", ng-model="title")
-  input(type="text", placeholder="Link", ng-model="link")
-  textarea(rows=5, placeholder="Text", ng-model="body")
+form.post-form(
+  ng-show="isLoggedIn()",
+  ng-submit="addPost()"
+) New Post
+  input(
+    type="text",
+    placeholder="Title",
+    ng-model="title"
+  )
+  input(
+    type="text",
+    placeholder="Link",
+    ng-model="link"
+  )
+  textarea(
+    rows=5,
+    placeholder="Text",
+    ng-model="body"
+  )
   button(type="submit") Submit
 div.alert(ng-hide="isLoggedIn()")
   a(href="/login") Login
@@ -10,10 +25,18 @@ div.alert(ng-hide="isLoggedIn()")
   |  to post or comment.
 div.post-summary(ng-repeat="post in posts | orderBy: '-rating'")
   div.upvote-wrapper
-    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvoted(post) ? 'voted' : ''", ng-click="upvotePost(post)") +
+    div.upvote.enabled(
+      ng-show="isLoggedIn()",
+      ng-class="hasUpvoted(post) ? 'voted' : ''",
+      ng-click="upvotePost(post)"
+    ) +
     div.upvote(ng-hide="isLoggedIn()") +
     div.rating {{post.rating}}
-    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvoted(post) ? 'voted' : ''", ng-click="downvotePost(post)") -
+    div.downvote.enabled(
+      ng-show="isLoggedIn()",
+      ng-class="hasDownvoted(post) ? 'voted' : ''",
+      ng-click="downvotePost(post)"
+    ) -
     div.downvote(ng-hide="isLoggedIn()") -
   div.post-content
     div.title

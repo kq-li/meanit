@@ -33,8 +33,10 @@ function postFilter(post, user) {
   var obj = clientFilter(post, user);
   
   post.comments.forEach(function (comment, index) {
-    if (typeof comment === 'mongoose.Document')
+    if (typeof comment === 'mongoose.Document' || 'object') {
+      console.log('true');
       obj.comments[index] = commentFilter(comment, user);
+    }
   });
   
   return obj;

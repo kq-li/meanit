@@ -1,9 +1,17 @@
 div.post-header
   div.upvote-wrapper
-    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvoted(post) ? 'voted' : ''", ng-click="upvotePost(post)") +
+    div.upvote.enabled(
+      ng-show="isLoggedIn()",
+      ng-class="hasUpvoted(post) ? 'voted' : ''",
+      ng-click="upvotePost(post)"
+    ) +
     div.upvote(ng-hide="isLoggedIn()") +
     div.rating {{post.rating}}
-    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvoted(post) ? 'voted' : ''", ng-click="downvotePost(post)") -
+    div.downvote.enabled(
+      ng-show="isLoggedIn()",
+      ng-class="hasDownvoted(post) ? 'voted' : ''",
+      ng-click="downvotePost(post)"
+    ) -
     div.downvote(ng-hide="isLoggedIn()") -
   div.post-content
     div.title
@@ -11,16 +19,32 @@ div.post-header
       div(ng-hide="post.link") {{post.title}}
     div.author posted by {{post.author}}
     div.body
-      form.post-edit-form(ng-show="postData.isEditing", ng-submit="updatePost()")
-        textarea(ng-model="postData.body")
+      form.post-edit-form(
+        ng-show="post.isEditing",
+        ng-submit="updatePost()"
+      )
+        textarea(ng-model="post.newBody")
         button(type="submit") Submit
-      div(ng-hide="postData.isEditing") {{post.body}}
+      div(ng-hide="post.isEditing") {{post.body}}
     div.edit
-      a(ng-click="editPost()", ng-show="postData.isAuthor && !postData.isEditing") Edit
+      a(
+        ng-click="editPost()",
+        ng-show="post.isAuthor && !post.isEditing"
+      ) Edit
     div.delete
-      a(ng-click="deletePost()", ng-show="postData.isAuthor && !postData.isEditing") Delete
-form.comment-form(ng-show="isLoggedIn()", ng-submit="addComment()") New Comment
-  textarea(rows=5, placeholder="Comment", ng-model="body")
+      a(
+        ng-click="deletePost()",
+        ng-show="post.isAuthor && !post.isEditing"
+      ) Delete
+form.comment-form(
+  ng-show="isLoggedIn()",
+  ng-submit="addComment()"
+) New Comment
+  textarea(
+    rows=5,
+    placeholder="Comment",
+    ng-model="body"
+  )
   button(type="submit") Submit
 div.alert(ng-hide="isLoggedIn()")
   a(href="/login") Login
@@ -29,19 +53,36 @@ div.alert(ng-hide="isLoggedIn()")
   |  to post or comment.
 div.comment(ng-repeat="comment in post.comments | orderBy: '-rating'")
   div.upvote-wrapper
-    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvoted(comment) ? 'voted' : ''", ng-click="upvoteComment(comment)") +
+    div.upvote.enabled(
+      ng-show="isLoggedIn()",
+      ng-class="hasUpvoted(comment) ? 'voted' : ''",
+      ng-click="upvoteComment(comment)"
+    ) +
     div.upvote(ng-hide="isLoggedIn()") +
     div.rating {{comment.rating}}
-    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvoted(comment) ? 'voted' : ''", ng-click="downvoteComment(comment)") -
+    div.downvote.enabled(
+      ng-show="isLoggedIn()",
+      ng-class="hasDownvoted(comment) ? 'voted' : ''",
+      ng-click="downvoteComment(comment)"
+    ) -
     div.downvote(ng-hide="isLoggedIn()") -
   div.comment-content
     div.author {{comment.author}}  
     div.body
-      form.comment-edit-form(ng-show="commentData[comment._id].isEditing", ng-submit="updateComment(comment)")
-        textarea(ng-model="commentData[comment._id].body")
+      form.comment-edit-form(
+        ng-show="comment.isEditing",
+        ng-submit="updateComment(comment)"
+      )
+        textarea(ng-model="comment.newBody")
         button(type="submit") Submit
-      div(ng-hide="commentData[comment._id].isEditing") {{comment.body}}
+      div(ng-hide="comment.isEditing") {{comment.body}}
     div.edit
-      a(ng-click="editComment(comment)", ng-show="commentData[comment._id].isAuthor && !commentData[comment._id].isEditing") Edit
+      a(
+        ng-click="editComment(comment)",
+        ng-show="comment.isAuthor && !comment.isEditing"
+      ) Edit
     div.delete
-      a(ng-click="deleteComment(comment)", ng-show="commentData[comment._id].isAuthor && !commentData[comment._id].isEditing") Delete
+      a(
+        ng-click="deleteComment(comment)",
+        ng-show="comment.isAuthor && !comment.isEditing"
+      ) Delete

@@ -327,38 +327,29 @@ app.controller('PostsCtrl', [
     $scope.downvotePost = posts.downvotePost;
     $scope.upvoteComment = posts.upvoteComment;
     $scope.downvoteComment = posts.downvoteComment;
+
+    $scope.post.isAuthor = $scope.currentUser() === $scope.post.author
+    $scope.post.isEditing = false;
+    $scope.post.newBody = '';
     
-    $scope.postData = {
-      isAuthor: $scope.currentUser() === $scope.post.author,
-      isEditing: false,
-      body: ''
-    };
-
-    $scope.commentData = {};
-
     $scope.post.comments.forEach(function (comment, index) {
-      $scope.commentData[comment._id] = {
-        isAuthor: $scope.currentUser() === comment.author,
-        isEditing: false,
-        body: ''
-      };
+      console.log(comment);
+      comment.isAuthor = $scope.currentUser() === comment.author;
+      comment.isEditing = false;
+      comment.newBody = '';
     });
     
     $scope.editPost = function () {
-      $scope.setData($scope.postData, {
-        isEditing: true,
-        body: $scope.post.body
-      });
+      $scope.post.isEditing = true;
+      $scope.post.newBody = $scope.post.body
     };
 
     $scope.updatePost = function () {
       posts.updatePost($scope.post, {
-        body: $scope.postData.body
+        body: $scope.post.newBody
       }).then(function (res) {
-        $scope.setData($scope.postData, {
-          isEditing: false,
-          body: ''
-        });
+        $scope.post.isEditing = false;
+        $scope.post.newBody = '';
       });
     };
 
@@ -372,43 +363,32 @@ app.controller('PostsCtrl', [
       posts.addComment($scope.post, {
         body: $scope.body
       }).then(function (res) {
-        $scope.commentData[res.data._id] = {
-          isAuthor: true,
-          isEditing: false,
-          body: ''
-        };
-
+        var comment = res.data;
+        comment.isAuthor = true;
+        comment.isEditing = false;
+        comment.newBody = '';
         $scope.body = '';
       });
     };
 
     $scope.editComment = function (comment) {
-      $scope.setData($scope.commentData[comment._id], {
-        isEditing: true,
-        body: comment.body
-      });
+      comment.isEditing = true;
+      comment.newBody = comment.body;
     };        
     
     $scope.updateComment = function (comment) {
+      console.log(comment.newBody);
       posts.updateComment(comment, {
-        body: $scope.commentData[comment._id].body
+        body: comment.newBody
       }).then(function (res) {
-        $scope.setData($scope.commentData[comment._id], {
-          isEditing: false,
-          body: ''
-        });
+        comment.isEditing = false;
+        comment.newBody = '';
       });
     };
 
     $scope.deleteComment = function (comment) {
       posts.deleteComment(comment).then(function (res) {
         $scope.post.comments.splice($scope.post.comments.indexOf(res.data));
-      });
-    };
-    
-    $scope.setData = function (data, obj) {
-      Object.keys(obj).forEach(function (key) {
-        data[key] = obj[key];
       });
     };
   }
