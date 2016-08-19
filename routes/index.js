@@ -16,6 +16,41 @@ function generateCallback(next, exec) {
   }
 };
 
+function clientFilter(doc, user) {
+  var obj = doc.toObject();
+
+  if (user) {
+    obj.hasUpvoted = doc.hasUserUpvoted(user);
+    obj.hasDownvoted = doc.hasUserDownvoted(user);
+  }
+
+  delete obj.upvoters;
+  delete obj.downvoters;
+  return obj;
+};
+
+function postFilter(post, user) {
+  var obj = clientFilter(post, user);
+  
+  post.comments.forEach(function (comment, index) {
+    if (typeof comment === 'mongoose.Document')
+      obj.comments[index] = commentFilter(comment, user);
+  });
+  
+  return obj;
+};
+
+function commentFilter(comment, user) {
+  return clientFilter(comment, user);
+};
+
+function userFilter(user) {
+  var obj = user.toObject();
+  delete obj.hash;
+  delete obj.salt;
+  return obj;
+};
+
 function requireAuth(req, res, next) {
   var header = req.headers.authorization;
 
@@ -48,11 +83,13 @@ function silentAuth(req, res, next) {
   
   if (header && header.split(' ')[0] == 'Bearer') 
     jwt.verify(header.split(' ')[1], 'SECRET', function (err, data) {
-      if (!err) 
+      if (!err)
         req.payload = data;
+
+      next();
     });
-  
-  next();
+  else
+    next();
 };      
   
 router.get('/api/home', function (req, res, next) {
@@ -61,98 +98,104 @@ router.get('/api/home', function (req, res, next) {
 
 router.get('/api/posts', silentAuth, function (req, res, next) {
   Post.find(generateCallback(next, function (posts) {
-    if (req.payload)
+    if (req.payload) {
       User.findUser(req.payload.username, generateCallback(next, function (user) {
         posts.forEach(function (post, index) {
-          post.hasUpvotedPost = user.hasUpvotedPost(post);
-          post.hasDownvotedPost = user.hasDownvotedPost(post);
+          posts[index] = postFilter(post, user);
         });
-
+        
         res.json(posts);
       }));
-    else
+    } else {
+      posts.forEach(function (post, index) {
+        posts[index] = postFilter(post);
+      });
+      
       res.json(posts);
+    }
   }));
 });
 
 router.post('/api/posts', requireAuth, function (req, res, next) {
   User.findUser(req.payload.username, generateCallback(next, function (user) {
-    var post = new Post(req.body);
-    post.author = req.payload.username;
-    post.hasUpvotedPost = false;
-    post.hasDownvotedPost = false;
-    
-    post.save(generateCallback(next, function (post) {
-      user.addPost(post, generateCallback(next, function (user) {
-        res.json(post);
+    if (!user) {
+      res.status(400).json({
+        message: 'Invalid user!'
+      });
+    } else {
+      var post = new Post(req.body);
+      post.author = user.username;
+      post.initialize();
+      
+      post.save(generateCallback(next, function (post) {
+        res.json(clientFilter(post));
       }));
-    }));
+    }
   }));
 });
 
 router.get('/api/posts/:post', silentAuth, function (req, res, next) {
-  req.post.populate('comments', generateCallback(next, function (post) {
-    if (req.payload)
-      User.findUser(req.payload.username, generateCallback(next, function (user) {
-        post.comments.forEach(function (comment, index) {
-          post.comments[index].hasUpvotedComment = user.hasUpvotedComment(comment);
-          post.comments[index].hasDownvotedComment = user.hasDownvotedComment(comment);
-        });
-
-        res.json(post);
-      }));
-    else
-      res.json(post);
+  var post = req.post;
+  var user;
+  
+  if (req.payload)
+    user = req.payload.username;
+  
+  post.populate('comments', generateCallback(next, function (post) {
+    res.json(postFilter(post, user));
   }));
 });
 
 router.put('/api/posts/:post/upvote', requireAuth, function (req, res, next) {
-  User.findUser(req.payload.username, generateCallback(next, function (user) {
-    var post = req.post;
-    
-    var cb = generateCallback(next, function (user) {
-      post.hasUpvotedPost = user.hasUpvotedPost(post);
-      post.hasDownvotedPost = user.hasDownvotedPost(post);
-      res.json(post);
-    });
+  var post = req.post;
+  var user = req.payload.username;
+  
+  var cb = generateCallback(next, function (post) {
+    post.populate('comments', generateCallback(next, function (post) {
+      res.json(postFilter(post, user));
+    }));
+  });
 
-    if (user.hasDownvotedPost(post))
-      user.unvotePost(post, generateCallback(next, function (user) {
-        user.upvotePost(post, cb);
-      }));
-    else if (!user.hasUpvotedPost(post))
-      user.upvotePost(post, cb);
-    else if (user.hasUpvotedPost(post))
-      user.unvotePost(post, cb);
-  }));
+  if (post.hasUserDownvoted(user))
+    post.unvote(user, generateCallback(next, function (post) {
+      post.upvote(user, cb);
+    }));
+  else if (post.hasUserUpvoted(user))
+    post.unvote(user, cb);
+  else
+    post.upvote(user, cb);
 });
 
 router.put('/api/posts/:post/downvote', requireAuth, function (req, res, next) {
-  User.findUser(req.payload.username, generateCallback(next, function (user) {
-    var post = req.post;
-    
-    var cb = generateCallback(next, function (user) {
-      post.hasUpvotedPost = user.hasUpvotedPost(post);
-      post.hasDownvotedPost = user.hasDownvotedPost(post);
-      res.json(post);
-    });
+  var post = req.post;
+  var user = req.payload.username;
 
-    if (user.hasUpvotedPost(post))
-      user.unvotePost(post, generateCallback(next, function (user) {
-        user.downvotePost(post, cb);
-      }));
-    else if (!user.hasDownvotedPost(post))
-      user.downvotePost(post, cb);
-    else if (user.hasDownvotedPost(post))
-      user.unvotePost(post, cb);
-  }));
+  var cb = generateCallback(next, function (post) {
+    post.populate('comments', generateCallback(next, function (post) {
+      res.json(postFilter(post, user));
+    }));
+  });
+
+  if (post.hasUserUpvoted(user))
+    post.unvote(user, generateCallback(next, function (post) {
+      post.downvote(user, cb);
+    }));
+  else if (post.hasUserDownvoted(user))
+    post.unvote(user, cb);
+  else
+    post.downvote(user, cb);
 });
 
 router.post('/api/posts/:post/edit', requireAuth, function (req, res, next) {
-  if (req.payload.username === req.post.author)
-    req.post.edit(req.body.body, function () {
-      res.json(req.post);
-    });
+  var post = req.post;
+  var user = req.payload.username;
+  
+  if (user === post.author) 
+    post.edit(req.body.body, generateCallback(next, function (post) {
+      post.populate('comments', generateCallback(next, function (post) {
+        res.json(postFilter(post, user));
+      }));
+    }));
   else
     res.status(400).json({
       message: 'You aren\'t the author of this post!'
@@ -160,11 +203,20 @@ router.post('/api/posts/:post/edit', requireAuth, function (req, res, next) {
 });
 
 router.put('/api/posts/:post/delete', requireAuth, function (req, res, next) {
-  if (req.payload.username === req.post.author)
-    User.findUser(req.payload.username, generateCallback(next, function (user) {
-      user.deletePost(req.post, generateCallback(next, function (user) {
-        req.post.remove(generateCallback(next, function (post) {
-          res.json(post);
+  var post = req.post;
+  var user = req.payload.username;
+
+  var query = {
+    _id: {
+      $in: post.comments
+    }
+  };
+  
+  if (user === post.author)
+    Comment.remove(query, generateCallback(next, function () {
+      post.deleteComments(generateCallback(next, function (post) {
+        post.remove(generateCallback(next, function (post) {
+          res.json(postFilter(post, user));
         }));
       }));
     }));
@@ -178,70 +230,64 @@ router.post('/api/posts/:post/comments', requireAuth, function (req, res, next) 
   User.findUser(req.payload.username, generateCallback(next, function (user) {
     var comment = new Comment(req.body);
     comment.post = req.post._id;
-    comment.author = req.payload.username;
-    comment.hasUpvotedComment = false;
-    comment.hasDownvotedComment = false;
-    console.log(JSON.stringify(comment));
+    comment.author = user.username;
+    comment.initialize();
     
     comment.save(generateCallback(next, function (comment) {
-      user.addComment(comment, generateCallback(next, function (user) {
-        req.post.addComment(comment, generateCallback(next, function (post) {
-          res.json(comment);
-        }));
+      req.post.addComment(comment, generateCallback(next, function (post) {
+        res.json(commentFilter(comment, user));
       }));
     }));
   }));
 });
 
 router.put('/api/posts/:post/comments/:comment/upvote', requireAuth, function (req, res, next) {
-  User.findUser(req.payload.username, generateCallback(next, function (user) {
-    var comment = req.comment;
+  var post = req.post;
+  var comment = req.comment;
+  var user = req.payload.username;
+  
+  var cb = generateCallback(next, function (comment) {
+    res.json(commentFilter(comment, user));
+  });
 
-    var cb = generateCallback(next, function (user) {
-      comment.hasUpvotedComment = user.hasUpvotedComment(comment);
-      comment.hasDownvotedComment = user.hasDownvotedComment(comment);
-      res.json(comment);
-    });
-
-    if (user.hasDownvotedComment(comment))
-      user.unvoteComment(comment, generateCallback(next, function (user) {
-        user.upvoteComment(comment, cb);
-      }));
-    else if (!user.hasUpvotedComment(comment))
-      user.upvoteComment(comment, cb);
-    else if (user.hasUpvotedComment(comment))
-      user.unvoteComment(comment, cb);
-  }));
+  if (comment.hasUserDownvoted(user))
+    comment.unvote(user, generateCallback(next, function (comment) {
+      comment.upvote(user, cb);
+    }));
+  else if (comment.hasUserUpvoted(user))
+    comment.unvote(user, cb);
+  else
+    comment.upvote(user, cb);
 });
 
 router.put('/api/posts/:post/comments/:comment/downvote', requireAuth, function (req, res, next) {
-  User.findUser(req.payload.username, generateCallback(next, function (user) {
-    var comment = req.comment;
+  var post = req.post;
+  var comment = req.comment;
+  var user = req.payload.username;
+  
+  var cb = generateCallback(next, function (comment) {
+    res.json(commentFilter(comment, user));
+  });
 
-    var cb = generateCallback(next, function (user) {
-      comment.hasUpvotedComment = user.hasUpvotedComment(comment);
-      comment.hasDownvotedComment = user.hasDownvotedComment(comment);
-      res.json(comment);
-    });
-
-    if (user.hasUpvotedComment(comment))
-      user.unvoteComment(comment, generateCallback(next, function (user) {
-        user.downvoteComment(comment, cb);
-      }));
-    else if (!user.hasDownvotedComment(comment))
-      user.downvoteComment(comment, cb);
-    else if (user.hasDownvotedComment(comment))
-      user.unvoteComment(comment, cb);
-  }));
+  if (comment.hasUserUpvoted(user))
+    comment.unvote(user, generateCallback(next, function (comment) {
+      comment.downvote(user, cb);
+    }));
+  else if (comment.hasUserDownvoted(user))
+    comment.unvote(user, cb);
+  else
+    comment.downvote(user, cb);
 });
 
 router.post('/api/posts/:post/comments/:comment/edit', requireAuth, function (req, res, next) {
-  if (req.payload.username === req.comment.author)
-    req.comment.update({
-      body: req.body.body
-    }, function () {
-      res.json(req.comment);
-    });
+  var post = req.post;
+  var comment = req.comment;
+  var user = req.payload.username;
+  
+  if (user === comment.author)
+    comment.edit(req.body.body, generateCallback(next, function (comment) {
+      res.json(commentFilter(comment, user));
+    }));
   else
     res.status(400).json({
       message: 'You aren\'t the author of this comment!'
@@ -249,12 +295,14 @@ router.post('/api/posts/:post/comments/:comment/edit', requireAuth, function (re
 });
 
 router.put('/api/posts/:post/comments/:comment/delete', requireAuth, function (req, res, next) {
-  if (req.payload.username === req.comment.author)
-    User.findUser(req.payload.username, generateCallback(next, function (user) {
-      user.deleteComment(req.comment, generateCallback(next, function (user) {
-        req.comment.remove(generateCallback(next, function (comment) {
-          res.json(comment);
-        }));
+  var post = req.post;
+  var comment = req.comment;
+  var user = req.payload.username;
+  
+  if (user === comment.author)
+    post.deleteComment(comment, generateCallback(next, function (post) {
+      comment.remove(generateCallback(next, function (comment) {
+        res.json(commentFilter(comment, user));
       }));
     }));
   else
@@ -307,16 +355,37 @@ router.post('/api/login', function (req, res, next) {
   })(req, res, next);
 });
 
-router.get('/api/users/', function (req, res, next) {
+router.get('/api/users/', silentAuth, function (req, res, next) {
   User.find(generateCallback(next, function (users) {
     res.json(users);
   }));
 });
+                
+router.get('/api/users/:user', silentAuth, function (req, res, next) {
+  var user;
 
-router.get('/api/users/:user', function (req, res, next) {
-  req.user.populate('posts', generateCallback(next, function (user) {
-    user.populate('comments', generateCallback(next, function (user) {
-      res.json(user);
+  if (req.payload)
+    user = req.payload.username;
+  
+  var query = {
+    author: req.user.username
+  };
+  
+  Post.find(query, generateCallback(next, function (posts) {
+    Comment.find(query, generateCallback(next, function (comments) {
+      var data = userFilter(req.user);
+      data.posts = posts;
+      data.comments = comments;
+
+      posts.forEach(function (post, index) {
+        data.posts[index] = postFilter(post, user);
+      });
+
+      comments.forEach(function (comment, index) {
+        data.comments[index] = commentFilter(comment, user);
+      });
+      
+      res.json(data);
     }));
   }));
 });

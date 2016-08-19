@@ -2,10 +2,10 @@ div.user {{user.username}}
 div.post-title Posts
 div.post(ng-repeat="post in user.posts") 
   div.upvote-wrapper
-    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvotedPost(post) ? 'voted' : ''", ng-click="upvotePost(post)") +
+    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvoted(post) ? 'voted' : ''", ng-click="upvotePost(post)") +
     div.upvote(ng-hide="isLoggedIn()") +
     div.rating {{post.rating}}
-    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedPost(post) ? 'voted' : ''", ng-click="downvotePost(post)") -
+    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvoted(post) ? 'voted' : ''", ng-click="downvotePost(post)") -
     div.downvote(ng-hide="isLoggedIn()") -
   div.post-content
     div.title
@@ -17,10 +17,10 @@ div.post(ng-repeat="post in user.posts")
 div.comment-title Comments
 div.comment(ng-repeat="comment in user.comments")
   div.upvote-wrapper
-    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvotedComment(comment) ? 'voted' : ''", ng-click="upvoteComment(comment)") +
+    div.upvote.enabled(ng-show="isLoggedIn()", ng-class="hasUpvoted(comment) ? 'voted' : ''", ng-click="upvoteComment(comment)") +
     div.upvote(ng-hide="isLoggedIn()") +
     div.rating {{comment.rating}}
-    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvotedComment(comment) ? 'voted' : ''", ng-click="downvoteComment(comment)") -
+    div.downvote.enabled(ng-show="isLoggedIn()", ng-class="hasDownvoted(comment) ? 'voted' : ''", ng-click="downvoteComment(comment)") -
     div.downvote(ng-hide="isLoggedIn()") -
   div.comment-content
     div.body {{comment.body}}

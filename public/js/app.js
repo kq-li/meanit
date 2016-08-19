@@ -11,90 +11,92 @@ app.factory('posts', [
     };
 
     postServ.getAllPosts = function () {
-      return $http.get('/api/posts', {
-        headers: {
-          Authorization: 'Bearer ' + auth.getToken()
-        }
-      }).success(function (data) {
-        angular.copy(data, postServ.posts);
-      });
-    };
-
-    postServ.createPost = function (post) {
-      return $http.post('/api/posts', post, {
-        headers: {
-          Authorization: 'Bearer ' + auth.getToken()
-        }
-      }).success(function (data) {
-        postServ.posts.push(data);
-      });
-    };
-
-    postServ.upvotePost = function (post) {
-      return $http.put('/api/posts/' + post._id + '/upvote', null, {
-        headers: {
-          Authorization: 'Bearer ' + auth.getToken()
-        }
-      }).success(function (data) {
-        postServ.updatePost(post, data);
-      });
-    };
-
-    postServ.downvotePost = function (post) {
-      return $http.put('/api/posts/' + post._id + '/downvote', null, {
-        headers: {
-          Authorization: 'Bearer ' + auth.getToken()
-        }
-      }).success(function (data) {
-        postServ.updatePost(post, data);
-      });
-    };
-
-    postServ.hasUpvotedPost = function (post) {
-      return post.hasUpvotedPost;
-    };
-
-    postServ.hasDownvotedPost = function (post) {
-      return post.hasDownvotedPost;
-    };
-    
-    postServ.getPost = function (id) {
-      return $http.get('/api/posts/' + id, {
+      var url = '/api/posts';
+      
+      return $http.get(url, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
       }).then(function (res) {
-        return res.data;
+        angular.copy(res.data, postServ.posts);
+        return res;
       });
     };
 
-    postServ.sendPost = function (post, newPost) {
-      return $http.post('/api/posts/' + post._id + '/edit', newPost, {
+    postServ.createPost = function (post) {
+      var url = '/api/posts';
+      
+      return $http.post(url, post, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
-      }).success(function (data) {
-        postServ.updatePost(post, data);
+      }).then(function (res) {
+        postServ.posts.push(res.data);
+        return res;
+      });
+    };
+
+    postServ.getPost = function (id) {
+      var url = '/api/posts/' + id;
+      
+      return $http.get(url, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).then(function (res) {
+        return res;
+      });
+    };
+
+    postServ.upvotePost = function (post) {
+      var url = '/api/posts/' + post._id + '/upvote';
+      
+      return $http.put(url, null, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).then(function (res) {
+        postServ.refresh(post, res.data);
+        return res;
+      });
+    };
+
+    postServ.downvotePost = function (post) {
+      var url = '/api/posts/' + post._id + '/downvote';
+      return $http.put(url, null, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).then(function (res) {
+        postServ.refresh(post, res.data);
+        return res;
+      });
+    };
+    
+    postServ.updatePost = function (post, newPost) {
+      var url = '/api/posts/' + post._id + '/edit';
+      return $http.post(url, newPost, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).then(function (res) {
+        postServ.refresh(post, res.data);
+        return res;
       });
     };
 
     postServ.deletePost = function (post) {
-      return $http.put('/api/posts/' + post._id + '/delete', null, {
+      var url = '/api/posts/' + post._id + '/delete';
+      return $http.put(url, null, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
-      }).success(function (data) {
-        postServ.posts.splice(postServ.posts.indexOf(data));
+      }).then(function (res) {
+        postServ.posts.splice(postServ.posts.indexOf(res.data));
+        return res;
       });
     };
-    
-    postServ.updatePost = function (post, data) {
-      post.rating = data.rating;
-      post.hasUpvotedPost = data.hasUpvotedPost;
-      post.hasDownvotedPost = data.hasDownvotedPost;
-      post.body = data.body;
-    };
-
+        
     postServ.addComment = function (post, comment) {
       var url = '/api/posts/' + post._id + '/comments';
       
@@ -102,8 +104,9 @@ app.factory('posts', [
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
-      }).success(function (data) {
-        post.comments.push(data);
+      }).then(function (res) {
+        post.comments.push(res.data);
+        return res;
       });
     };
 
@@ -114,8 +117,9 @@ app.factory('posts', [
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
-      }).success(function (data) {
-        postServ.updateComment(comment, data);
+      }).then(function (res) {
+        postServ.refresh(comment, res.data);
+        return res;
       });
     };
 
@@ -126,28 +130,22 @@ app.factory('posts', [
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
-      }).success(function (data) {
-        postServ.updateComment(comment, data);
+      }).then(function (res) {
+        postServ.refresh(comment, res.data);
+        return res;
       });
     };
 
-    postServ.hasUpvotedComment = function (comment) {
-      return comment.hasUpvotedComment;
-    };
-
-    postServ.hasDownvotedComment = function (comment) {
-      return comment.hasDownvotedComment;
-    };
-
-    postServ.sendComment = function (comment, newComment) {
+    postServ.updateComment = function (comment, newComment) {
       var url = '/api/posts/' + comment.post + '/comments/' + comment._id + '/edit';
       
       return $http.post(url, newComment, {
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
-      }).success(function (data) {
-        postServ.updateComment(comment, data);
+      }).then(function (res) {
+        postServ.refresh(comment, res.data);
+        return res;
       });
     };
     
@@ -158,14 +156,21 @@ app.factory('posts', [
         headers: {
           Authorization: 'Bearer ' + auth.getToken()
         }
-      });
+      })
     };
     
-    postServ.updateComment = function (comment, data) {
-      comment.rating = data.rating;
-      comment.hasUpvotedComment = data.hasUpvotedComment;
-      comment.hasDownvotedComment = data.hasDownvotedComment;
-      comment.body = data.body;
+    postServ.hasUpvoted = function (obj) {
+      return obj.hasUpvoted;
+    };
+
+    postServ.hasDownvoted = function (obj) {
+      return obj.hasDownvoted;
+    };
+    
+    postServ.refresh = function (obj, data) {
+      Object.keys(data).forEach(function (key) {
+        obj[key] = data[key];
+      });
     };
 
     return postServ;
@@ -181,14 +186,26 @@ app.factory('users', [
     };
 
     userServ.getAllUsers = function () {
-      return $http.get('/api/users/').success(function (data) {
-        angular.copy(data, userServ.users);
+      var url = '/api/users';
+      
+      return $http.get(url, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).then(function (res) {
+        angular.copy(res.data, userServ.users);
+        return res;
       });
     };
 
     userServ.getUser = function (name) {
-      return $http.get('/api/users/' + name).then(function (res) {
-        return res.data;
+      var url = '/api/users/' + name;
+      return $http.get(url, {
+        headers: {
+          Authorization: 'Bearer ' + auth.getToken()
+        }
+      }).then(function (res) {
+        return res;
       });
     };
 
@@ -239,14 +256,18 @@ app.factory('auth', [
     };
 
     authServ.register = function (user) {
-      return $http.post('/api/register', user).success(function (data) {
-        authServ.saveToken(data.token);
+      var url = '/api/register';
+      
+      return $http.post(url, user).then(function (res) {
+        authServ.saveToken(res.data.token);
       });
     };
 
     authServ.login = function (user) {
-      return $http.post('/api/login', user).success(function (data) {
-        authServ.saveToken(data.token);
+      var url = '/api/login';
+      
+      return $http.post(url, user).then(function (res) {
+        authServ.saveToken(res.data.token);
       });
     };
         
@@ -267,8 +288,10 @@ app.controller('MainCtrl', [
     $scope.posts = posts.posts;
     $scope.isLoggedIn = auth.isLoggedIn;
     $scope.currentUser = auth.currentUser;
-    $scope.hasUpvotedPost = posts.hasUpvotedPost;
-    $scope.hasDownvotedPost = posts.hasDownvotedPost;
+    $scope.hasUpvoted = posts.hasUpvoted;
+    $scope.hasDownvoted = posts.hasDownvoted;
+    $scope.upvotePost = posts.upvotePost;
+    $scope.downvotePost = posts.downvotePost;
     
     $scope.addPost = function () {
       if (!$scope.title || $scope.title === '')
@@ -278,19 +301,11 @@ app.controller('MainCtrl', [
         title: $scope.title,
         link: $scope.link,
         body: $scope.body
-      }).success(function (data) {
+      }).then(function (res) {
         $scope.title = '';
         $scope.link = '';
         $scope.body = '';
       });
-    };
-
-    $scope.upvotePost = function (post) {
-      posts.upvotePost(post);
-    };
-
-    $scope.downvotePost = function (post) {
-      posts.downvotePost(post);
     };
   }
 ]);
@@ -306,38 +321,49 @@ app.controller('PostsCtrl', [
     $scope.post = post;
     $scope.isLoggedIn = auth.isLoggedIn;
     $scope.currentUser = auth.currentUser;
-    $scope.hasUpvotedComment = posts.hasUpvotedComment;
-    $scope.hasDownvotedComment = posts.hasDownvotedComment;
+    $scope.hasUpvoted = posts.hasUpvoted;
+    $scope.hasDownvoted = posts.hasDownvoted;
+    $scope.upvotePost = posts.upvotePost;
+    $scope.downvotePost = posts.downvotePost;
+    $scope.upvoteComment = posts.upvoteComment;
+    $scope.downvoteComment = posts.downvoteComment;
     
-    $scope.postForm = {
+    $scope.postData = {
       isAuthor: $scope.currentUser() === $scope.post.author,
       isEditing: false,
       body: ''
     };
 
-    $scope.commentForms = {};
+    $scope.commentData = {};
 
-    for (var i = 0; i < $scope.post.comments.length; i++)
-      $scope.commentForms[$scope.post.comments[i]._id] = {
-        isAuthor: $scope.currentUser() === $scope.post.comments[i].author,
+    $scope.post.comments.forEach(function (comment, index) {
+      $scope.commentData[comment._id] = {
+        isAuthor: $scope.currentUser() === comment.author,
         isEditing: false,
         body: ''
       };
+    });
     
     $scope.editPost = function () {
-      $scope.setForm($scope.postForm, true, $scope.post.body);
+      $scope.setData($scope.postData, {
+        isEditing: true,
+        body: $scope.post.body
+      });
     };
 
-    $scope.sendPost = function () {
-      posts.sendPost($scope.post, {
-        body: $scope.postForm.body
-      }).success(function (data) {
-        $scope.setForm($scope.postForm, false, '');
+    $scope.updatePost = function () {
+      posts.updatePost($scope.post, {
+        body: $scope.postData.body
+      }).then(function (res) {
+        $scope.setData($scope.postData, {
+          isEditing: false,
+          body: ''
+        });
       });
     };
 
     $scope.deletePost = function () {
-      posts.deletePost($scope.post).success(function (data) {
+      posts.deletePost($scope.post).then(function (res) {
         $state.go('home');
       });
     };
@@ -345,8 +371,8 @@ app.controller('PostsCtrl', [
     $scope.addComment = function () {
       posts.addComment($scope.post, {
         body: $scope.body
-      }).success(function (data) {
-        $scope.commentForms[data._id] = {
+      }).then(function (res) {
+        $scope.commentData[res.data._id] = {
           isAuthor: true,
           isEditing: false,
           body: ''
@@ -356,35 +382,34 @@ app.controller('PostsCtrl', [
       });
     };
 
-    $scope.upvoteComment = function (comment) {
-      posts.upvoteComment(comment);
-    };
-
-    $scope.downvoteComment = function (comment) {
-      posts.downvoteComment(comment);
-    };
-
     $scope.editComment = function (comment) {
-      $scope.setForm($scope.commentForms[comment._id], true, comment.body);
+      $scope.setData($scope.commentData[comment._id], {
+        isEditing: true,
+        body: comment.body
+      });
     };        
     
-    $scope.sendComment = function (comment) {
-      posts.sendComment(comment, {
-        body: $scope.commentForms[comment._id].body
-      }).success(function (data) {
-        $scope.setForm($scope.commentForms[comment._id], false, '');
+    $scope.updateComment = function (comment) {
+      posts.updateComment(comment, {
+        body: $scope.commentData[comment._id].body
+      }).then(function (res) {
+        $scope.setData($scope.commentData[comment._id], {
+          isEditing: false,
+          body: ''
+        });
       });
     };
 
     $scope.deleteComment = function (comment) {
-      posts.deleteComment(comment).success(function (data) {
-        $scope.post.comments.splice($scope.post.comments.indexOf(data));
+      posts.deleteComment(comment).then(function (res) {
+        $scope.post.comments.splice($scope.post.comments.indexOf(res.data));
       });
     };
     
-    $scope.setForm = function (form, isEditing, body) {
-      form.isEditing = isEditing;
-      form.body = body;
+    $scope.setData = function (data, obj) {
+      Object.keys(obj).forEach(function (key) {
+        data[key] = obj[key];
+      });
     };
   }
 ]);
@@ -399,26 +424,12 @@ app.controller('UsersCtrl', [
     $scope.user = user;
     $scope.isLoggedIn = auth.isLoggedIn;
     $scope.currentUser = auth.currentUser;
-    $scope.hasUpvotedPost = posts.hasUpvotedPost;
-    $scope.hasDownvotedPost = posts.hasDownvotedPost;
-    $scope.hasUpvotedComment = posts.hasUpvotedComment;
-    $scope.hasDownvotedComment = posts.hasDownvotedComment;
-
-    $scope.upvotePost = function (post) {
-      posts.upvotePost(post);
-    };
-
-    $scope.downvotePost = function (post) {
-      posts.downvotePost(post);
-    };
-    
-    $scope.upvoteComment = function (comment) {
-      posts.upvoteComment(comment.post, comment);
-    };
-
-    $scope.downvoteComment = function (comment) {
-      posts.downvoteComment(comment.post, comment);
-    };
+    $scope.hasUpvoted = posts.hasUpvoted;
+    $scope.hasDownvoted = posts.hasDownvoted;
+    $scope.upvotePost = posts.upvotePost;
+    $scope.downvotePost = posts.downvotePost;
+    $scope.upvoteComment = posts.upvoteComment;
+    $scope.downvoteComment = posts.downvoteComment;
   }
 ]);
 
@@ -430,7 +441,7 @@ app.controller('AuthCtrl', [
     $scope.user = {};
 
     $scope.register = function () {
-      auth.register($scope.user).error(function (error) {
+      auth.register($scope.user).catch(function (error) {
         $scope.error = error;
       }).then(function () {
         $state.go('home');
@@ -438,7 +449,7 @@ app.controller('AuthCtrl', [
     };
 
     $scope.login = function () {
-      auth.login($scope.user).error(function (error) {
+      auth.login($scope.user).catch(function (error) {
         $scope.error = error;
       }).then(function () {
         $state.go('home');
@@ -485,7 +496,9 @@ app.config([
             '$stateParams',
             'posts',
             function ($stateParams, posts) {
-              return posts.getPost($stateParams.id);
+              return posts.getPost($stateParams.id).then(function (res) {
+                return res.data;
+              });
             }
           ]
         }
@@ -499,7 +512,9 @@ app.config([
             '$stateParams',
             'users',
             function ($stateParams, users) {
-              return users.getUser($stateParams.name);
+              return users.getUser($stateParams.name).then(function (res) {
+                return res.data;
+              });
             }
           ]
         }

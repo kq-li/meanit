@@ -13,18 +13,59 @@ var PostSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment'
   }],
-  hasUpvotedPost: Boolean,
-  hasDownvotedPost: Boolean
+  upvoters: [{
+    type: String,
+    unique: true
+  }],
+  downvoters: [{
+    type: String,
+    unique: true
+  }]
 });
 
-PostSchema.methods.upvote = function () {
-  this.rating++;
-  this.save();
+PostSchema.methods.initialize = function () {
+  this.comments = [];
+  this.upvoters = [];
+  this.downvoters = [];
 };
 
-PostSchema.methods.downvote = function () {
+PostSchema.methods.upvote = function (user, cb) {
+  this.upvoters.push(user);
+  this.rating++;
+  this.save(cb);
+};
+
+PostSchema.methods.downvote = function (user, cb) {
+  this.downvoters.push(user);
   this.rating--;
-  this.save();
+  this.save(cb);
+};
+
+PostSchema.methods.unvote = function (user, cb) {
+  if (this.hasUserUpvoted(user)) {
+    this.upvoters.splice(this.upvoters.indexOf(user));
+    this.rating--;
+  }
+
+  if (this.hasUserDownvoted(user)) {
+    this.downvoters.splice(this.downvoters.indexOf(user));
+    this.rating++;
+  }
+
+  this.save(cb);
+};
+
+PostSchema.methods.edit = function (body, cb) {
+  this.body = body;
+  this.save(cb);
+};
+
+PostSchema.methods.hasUserUpvoted = function (user) {
+  return this.upvoters.indexOf(user) !== -1;
+};
+
+PostSchema.methods.hasUserDownvoted = function (user) {
+  return this.downvoters.indexOf(user) !== -1;
 };
 
 PostSchema.methods.addComment = function (comment, cb) {
@@ -34,14 +75,10 @@ PostSchema.methods.addComment = function (comment, cb) {
 
 PostSchema.methods.deleteComment = function (comment, cb) {
   this.comments.splice(this.comments.indexOf(comment));
-  comment.remove()
   this.save(cb);
 };
 
 PostSchema.methods.deleteComments = function (cb) {
-  for (var i = 0; i < this.comments.length; i++)
-    this.comments[i].remove();
-
   this.comments = [];
   this.save(cb);
 };
