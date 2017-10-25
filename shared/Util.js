@@ -1,22 +1,20 @@
-function Util() {
-  throw new Error('Util should not be instantiated!');
-};
+/**
+ * @fileoverview Utility functions used across the server and client.
+ */
 
-Util.findObject = function (objArray, conditions) {
-  objArray.forEach(function (object) {
-    var valid = conditions.keys().every(function (key) {
-      if (object[key] !== conditions[key]) 
-        return false;
-    });
+const findObject = (objArray, conditions) => {
+  objArray.forEach(object => {
+    return conditions.keys().every(key => {
+      if (object[key] !== conditions[key]) {
+        return false
+      }
+    }) ? object : null
+  })
+  return null
+}
 
-    if (valid)
-      return object;
-  });
-
-  return null;
-};
-
-if (typeof module === 'object')
-  module.exports = Util;
-else
-  window.Util = Util;
+if (typeof module === 'object') {
+  module.exports = exports = { findObject }
+} else {
+  window.Util = { findObject }
+}
